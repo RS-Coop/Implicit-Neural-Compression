@@ -1,0 +1,43 @@
+'''
+Experiment configuration file.
+'''
+
+'''
+PT Lightning trainer arguments.
+
+Documentation:
+  https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
+'''
+train:
+  accelerator: #str e.g. "gpu"
+  devices: #int
+  num_nodes: #int
+  auto_scale_batch_size: #bool
+  auto_select_gpus: #bool
+  enable_checkpointing: #bool
+  check_val_every_n_epoch: #int
+  default_root_dir: #str
+  log_every_n_steps: #int
+  enable_progress_bar: #bool
+  profiler: #str
+  max_epochs: #int
+  max_steps: #int
+  logger: #bool
+
+'''
+Model arguments
+'''
+model:
+
+'''
+PT LightningDataModule arguments
+'''
+data:
+  data_dir: #str
+  batch_size: #int
+
+'''
+Extra arguments
+'''
+extra:
+  early_stopping: #bool
