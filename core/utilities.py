@@ -15,3 +15,15 @@ Documentation:
 class ProgressBar(TQDMProgressBar):
     def __init__(self):
         super().__init__()
+
+'''
+Custom Tensorboard logger.
+'''
+class Logger(TensorBoardLogger):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    @rank_zero_only
+    def log_metrics(self, metrics, step):
+        metrics.pop('epoch', None)
+        return super().log_metrics(metrics, step)
