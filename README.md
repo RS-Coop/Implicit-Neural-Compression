@@ -12,7 +12,7 @@ which will install all necessary packages for this template.
 - PT Lightning has a lot of functionality, so always check the documentation.
 
 ## Documentation
-There is a lot of good documentation (and some not so good) available, but I have picked out some of what I think is the most useful.
+There is a lot of documentation available, but I have picked out some of what I think is the most useful.
 
 - [PyTorch Lightning](https://pytorch-lightning.readthedocs.io/en/stable/): Documentation homepage
 - [LightningModule](https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.core.LightningModule.html?highlight=LightningModule): Overview and introduction on how to use

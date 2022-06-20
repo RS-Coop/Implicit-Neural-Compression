@@ -1,13 +1,8 @@
-'''
-Experiment configuration file.
-'''
+#Experiment configuration file.
 
-'''
-PT Lightning trainer arguments.
-
-Documentation:
-  https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
-'''
+#PT Lightning trainer arguments.
+#Documentation: https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
+#Comment out options you aren't using
 train:
   accelerator: #str e.g. "gpu"
   devices: #int
@@ -24,20 +19,14 @@ train:
   max_steps: #int
   logger: #bool
 
-'''
-Model arguments
-'''
+#Model arguments
 model:
 
-'''
-PT LightningDataModule arguments
-'''
+#PT LightningDataModule arguments
 data:
   data_dir: #str
   batch_size: #int
 
-'''
-Extra arguments
-'''
+#Extra arguments
 extra:
   early_stopping: #bool

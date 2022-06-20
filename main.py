@@ -45,8 +45,11 @@ def main(args, trainer_args, model_args, data_args):
 
     #Logger
     if train_args['logger']:
+        if train_args['default_root_dir'] is None:
+            train_args['default_root_dir'] = os.getcwd()
+
         train_args['logger'] = Logger(save_dir=train_args['default_root_dir'],
-                                        default_hp_metric=False)
+                                        default_hp_metric=False) #adding version=args['experiment'] will make the save directory the experiment name
 
     #Train model
     trainer = Trainer(**trainer_args, callbacks=callbacks)
