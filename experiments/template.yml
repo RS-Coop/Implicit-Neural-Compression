@@ -21,6 +21,7 @@ train:
 
 #Model arguments
 model:
+  learning_rate: #float
 
 #PT LightningDataModule arguments
 data:

@@ -7,6 +7,11 @@ conda env create -f environemnt.yml
 ```
 which will install all necessary packages for this template.
 
+To visualize the logging results saved to `lightning_logs/` run the following command:
+```bash
+tensorboard --logdir=lightning_logs/
+```
+
 ## Tips and Tricks
 - Don't use ```.cuda()``` or ```.to(device)```, PT Lightning should handle all of this internally, and in the rare case where you do need to place a tensor on the correct device yourself, you should do this in an agnostic manner.
 - PT Lightning has a lot of functionality, so always check the documentation.

@@ -20,11 +20,16 @@ class Model(LightningModule):
         loss_fn: model loss function for training
     '''
     def __init__(self,
-                    loss_fn):
+                    loss_fn,
+                    learning_rate = 1e-2):
         super().__init__()
 
         #Log model hyperparameters
-        self.save_hyperparameters(ignore=['loss_fn'])
+        self.save_hyperparameters(ignore=['loss_fn',
+                                            'learning_rate'])
+
+        #Training hyperparameters
+        self.learning_rate = learning_rate
 
     '''
     [Optional] A forward eavaluation of the network.
@@ -66,6 +71,6 @@ class Model(LightningModule):
         Torch optimizer
     '''
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters)
+        optimizer = torch.optim.Adam(self.parameters, lr=self.learning_rate)
 
         return optimizer
