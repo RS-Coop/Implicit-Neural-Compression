@@ -45,13 +45,13 @@ class DataModule1(LightningDataModule):
             raise ValueError("Invalid stage.")
 
     '''
-    [Optional] Used in Trainer.fit
+    Used in Trainer.fit
     '''
     def train_dataloader(self):
         return DataLoader(self.train, batch_size=self.batch_size, num_workers=self.num_workers)
 
     '''
-    [Optional] Used in Trainer.fit
+    Used in Trainer.fit
     '''
     def val_dataloader(self):
         return DataLoader(self.val, batch_size=self.batch_size, num_workers=self.num_workers)
