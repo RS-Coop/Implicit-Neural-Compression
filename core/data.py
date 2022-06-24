@@ -21,12 +21,18 @@ class DataModule1(LightningDataModule):
     def __init__(self
                     data_dir,
                     batch_size,
-                    num_workers=1):
+                    shuffle=False,
+                    num_workers=4,
+                    persistent_workers=True,
+                    pin_memory=True):
         super().__init__()
 
         self.data_dir = data_dir
         self.batch_size = batch_size
+        self.shuffle = shuffle
         self.num_workers = num_workers
+        self.persistent_workers = persistent_workers
+        self.pin_memory = pin_memory
 
     '''
     Load and preprocess data
@@ -48,26 +54,43 @@ class DataModule1(LightningDataModule):
     Used in Trainer.fit
     '''
     def train_dataloader(self):
-        return DataLoader(self.train, batch_size=self.batch_size, num_workers=self.num_workers)
+        return DataLoader(self.train,
+                            batch_size=self.batch_size,
+                            shuffle=self.shuffle,
+                            num_workers=self.num_workers*self.trainer.num_devices
+                            persistent_workers=self.persistent_workers,
+                            pin_memory=self.pin_memory)
 
     '''
     Used in Trainer.fit
     '''
     def val_dataloader(self):
-        return DataLoader(self.val, batch_size=self.batch_size, num_workers=self.num_workers)
-
+        return DataLoader(self.train,
+                            batch_size=self.batch_size,
+                            shuffle=self.shuffle,
+                            num_workers=self.num_workers*self.trainer.num_devices
+                            persistent_workers=self.persistent_workers,
+                            pin_memory=self.pin_memory)
     '''
     [Optional] Used in Trainer.test
     '''
     def test_dataloader(self):
-        return DataLoader(self.test, batch_size=self.batch_size, num_workers=self.num_workers)
-
+        return DataLoader(self.train,
+                            batch_size=self.batch_size,
+                            shuffle=self.shuffle,
+                            num_workers=self.num_workers*self.trainer.num_devices
+                            persistent_workers=self.persistent_workers,
+                            pin_memory=self.pin_memory)
     '''
     [Optional] Used in Trainer.predict
     '''
     def predict_dataloader(self):
-        return DataLoader(self.predict, batch_size=self.batch_size, num_workers=self.num_workers)
-
+        return DataLoader(self.train,
+                            batch_size=self.batch_size,
+                            shuffle=self.shuffle,
+                            num_workers=self.num_workers*self.trainer.num_devices
+                            persistent_workers=self.persistent_workers,
+                            pin_memory=self.pin_memory)
     '''
     [Optional] Clean up data
     '''
