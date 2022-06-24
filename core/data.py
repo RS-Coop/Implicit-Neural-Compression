@@ -67,7 +67,6 @@ class DataModule1(LightningDataModule):
     def val_dataloader(self):
         return DataLoader(self.train,
                             batch_size=self.batch_size,
-                            shuffle=self.shuffle,
                             num_workers=self.num_workers*self.trainer.num_devices
                             persistent_workers=self.persistent_workers,
                             pin_memory=self.pin_memory)
@@ -77,7 +76,6 @@ class DataModule1(LightningDataModule):
     def test_dataloader(self):
         return DataLoader(self.train,
                             batch_size=self.batch_size,
-                            shuffle=self.shuffle,
                             num_workers=self.num_workers*self.trainer.num_devices
                             persistent_workers=self.persistent_workers,
                             pin_memory=self.pin_memory)
@@ -87,7 +85,6 @@ class DataModule1(LightningDataModule):
     def predict_dataloader(self):
         return DataLoader(self.train,
                             batch_size=self.batch_size,
-                            shuffle=self.shuffle,
                             num_workers=self.num_workers*self.trainer.num_devices
                             persistent_workers=self.persistent_workers,
                             pin_memory=self.pin_memory)
