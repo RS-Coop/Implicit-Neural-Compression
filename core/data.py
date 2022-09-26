@@ -21,10 +21,10 @@ class DataModule1(LightningDataModule):
     def __init__(self
                     data_dir,
                     batch_size,
-                    shuffle=False,
-                    num_workers=4,
-                    persistent_workers=True,
-                    pin_memory=True):
+                    shuffle = False,
+                    num_workers = 4,
+                    persistent_workers = True,
+                    pin_memory = True):
         super().__init__()
 
         self.data_dir = data_dir
