@@ -20,13 +20,13 @@ class Model(LightningModule):
         loss_fn: model loss function for training
     '''
     def __init__(self,
-                    loss_fn,
-                    learning_rate = 1e-2):
+            loss_fn,
+            learning_rate = 1e-2
+        ):
         super().__init__()
 
         #Log model hyperparameters
-        self.save_hyperparameters(ignore=['loss_fn',
-                                            'learning_rate'])
+        self.save_hyperparameters()
 
         #Training hyperparameters
         self.learning_rate = learning_rate
@@ -73,4 +73,7 @@ class Model(LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters, lr=self.learning_rate)
 
-        return optimizer
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer)
+        scheduler_config = {"scheduler": scheduler, "monitor": "val_err"}
+
+        return {"optimizer": optimizer, "lr_scheduler": scheduler_config}

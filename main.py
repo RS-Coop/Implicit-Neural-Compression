@@ -4,52 +4,59 @@ command line arguments or an experiment YAML file.
 
 Example usage:
 
-- Run the test found in experiments/config1.yml
-    python main.py --experiment config1
+- Run the test found in experiments/tests/config1.yaml
+    python main.py --experiment tests/config1.yaml
 '''
-
-from core.model import Model
-from core.data import DataModule1
-from core.utilities import ProgressBar, Logger
 
 import os
 import yaml
 from argparse import ArgumentParser
+from pathlib import Path
 
 import torch
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
+
+from core.model import Model
+from core.data import DataModule
+from core.utilities import ProgressBar, Logger
 
 '''
 Build and train a model.
 
 Input:
     experiment: experiment name
-    trainer_args: PT Lightning Trainer arguments
-    model_args: model arguments
-    data_args: PT LightningDataModule arguments
-    extra_args: other arguments that don't fit in groups above
+    config: experiment configuration
 '''
-def main(experiment, trainer_args, model_args, data_args, extra_args):
+def main(experiment, config):
+
+    #Extract args
+    trainer_args = config['train']
+    model_args = config['model']
+    data_args = config['data']
+    misc_args = config['misc']
 
     #Setup data
-    data_module = DataModule1(**data_args)
+    data_module = DataModule(**data_args)
 
     #Build model
-    model = Model1(**model_args)
+    model = Model(**model_args)
 
     #Callbacks
     callbacks = []
-    if extra_args['early_stopping']:
+    if misc_args['early_stopping']:
         callbacks.append(EarlyStopping(monitor='val_loss')) #https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.callbacks.EarlyStopping.html#pytorch_lightning.callbacks.EarlyStopping
     if trainer_args['enable_checkpointing']:
         callbacks.append(ModelCheckpoint()) #https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.callbacks.ModelCheckpoint.html
 
     #Logger
     if trainer_args['logger']:
-        logger = Logger(save_dir=trainer_args['default_root_dir'],
-                                        name=experiment,
-                                        default_hp_metric=False)
+        #Sace config details
+        exp_dir, exp_name = os.path.split(experiment)
+        exp_name = os.path.splitext(exp_name)[0]
+
+        logger = Logger(save_dir=os.path.join(trainer_args['default_root_dir'], exp_dir),
+                        name=exp_name, default_hp_metric=False)
 
         filename = os.path.join(logger.log_dir, 'config.yaml')
         os.makedirs(os.path.dirname(filename), exist_ok=True)
@@ -72,26 +79,21 @@ def main(experiment, trainer_args, model_args, data_args, extra_args):
     '''
 
 '''
-Parse arguments
+Parse arguments from configuration file and command line.
+Command line arguments will override their config file counterparts.
 '''
 if __name__ == "__main__":
     #Look for config
     parser = argparse.ArgumentParser()
     parser.add_argument("--experiment", type=str, default=None)
-    args = vars(parser.parse_known_args()[0])
+    experiment = vars(parser.parse_known_args()[0])['experiment']
 
     #Load YAML config
-    if args['experiment'] != None:
+    if experiment != None:
         try:
             #open YAML file
             with open(f"experiments/{args['experiment']}.yaml", "r") as file:
                 config = yaml.safe_load(file)
-
-            #extract args
-            trainer_args = config['train']
-            model_args = config['model']
-            data_args = config['data']
-            extra_args = config['extra']
 
         except Exception as e:
             raise ValueError(f"Experiment {args['experiment']} is invalid.")
@@ -105,16 +107,16 @@ if __name__ == "__main__":
 
     #model specific args
     model_parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
-    model_parser = AutoEncoder.add_args(model_parser)
+    model_parser = Model.add_args(model_parser)
 
     #data specific args
     data_parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
-    data_parser = GridDataModule.add_args(data_parser)
+    data_parser = DataModule.add_args(data_parser)
 
     #look for other CL arguments
-    trainer_args.update(vars(trainer_parser.parse_known_args()[0]))
-    model_args.update(vars(model_parser.parse_known_args()[0]))
-    data_args.update(vars(data_parser.parse_known_args()[0]))
+    config['train'].update(vars(trainer_parser.parse_known_args()[0]))
+    config['model'].update(vars(model_parser.parse_known_args()[0]))
+    config['data'].update(vars(data_parser.parse_known_args()[0]))
 
     #run main script
-    main(trainer_args, model_args, data_args, extra_args)
+    main(experiment, config)

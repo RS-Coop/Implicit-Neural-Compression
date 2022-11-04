@@ -11,7 +11,7 @@ from pytorch_lightning import LightningDataModule
 
 '''
 '''
-class DataModule1(LightningDataModule):
+class DataModule(LightningDataModule):
     '''
     Input:
         data_dir: path to dataset directory (usually absolute is more robust)
@@ -19,12 +19,13 @@ class DataModule1(LightningDataModule):
         num_workers: machine dependent, more workers means faster loading
     '''
     def __init__(self
-                    data_dir,
-                    batch_size,
-                    shuffle = False,
-                    num_workers = 4,
-                    persistent_workers = True,
-                    pin_memory = True):
+            data_dir,
+            batch_size,
+            shuffle = False,
+            num_workers = 4,
+            persistent_workers = True,
+            pin_memory = True
+        ):
         super().__init__()
 
         self.data_dir = data_dir
