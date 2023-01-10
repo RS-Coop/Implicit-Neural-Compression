@@ -31,4 +31,5 @@ data:
 
 #Extra arguments
 extra:
+  compute_stats: #bool
   early_stopping: #bool

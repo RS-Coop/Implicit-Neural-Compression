@@ -1,28 +1,27 @@
 '''
-Builds and trains a model based on input parameters, which can be specified via
-command line arguments or an experiment YAML file.
+Builds, trains, and tests a model based on input parameters, which are specified
+via a YAML configuration file and optional command line arguments.
 
 Example usage:
-
-- Run the test found in experiments/tests/config1.yaml
-    python main.py --experiment tests/config1.yaml
+    - Run the test found in experiments/tests/config1.yaml
+        python main.py --experiment tests/config1.yaml
 '''
 
 import os
 import yaml
 from argparse import ArgumentParser
-from pathlib import Path
 
 import torch
+
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 
 from core.model import Model
 from core.data import DataModule
-from core.utilities import ProgressBar, Logger
+from core.utils import ProgressBar, Logger
 
 '''
-Build and train a model.
+Build, train, and test a model.
 
 Input:
     experiment: experiment name
@@ -46,22 +45,20 @@ def main(experiment, config):
     callbacks = []
     if misc_args['early_stopping']:
         callbacks.append(EarlyStopping(monitor='val_loss')) #https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.callbacks.EarlyStopping.html#pytorch_lightning.callbacks.EarlyStopping
+
     if trainer_args['enable_checkpointing']:
         callbacks.append(ModelCheckpoint()) #https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.callbacks.ModelCheckpoint.html
 
     #Logger
     if trainer_args['logger']:
-        #Sace config details
+        #Save config details
         exp_dir, exp_name = os.path.split(experiment)
         exp_name = os.path.splitext(exp_name)[0]
 
         logger = Logger(save_dir=os.path.join(trainer_args['default_root_dir'], exp_dir),
                         name=exp_name, default_hp_metric=False)
 
-        filename = os.path.join(logger.log_dir, 'config.yaml')
-        os.makedirs(os.path.dirname(filename), exist_ok=True)
-        with open(filename, "w") as file:
-            yaml.dump(config, file)
+        logger.log_config(config)
 
         #add logger to trainer args
         trainer_args['logger'] = logger
@@ -74,13 +71,19 @@ def main(experiment, config):
 
     trainer.fit(model=model, datamodule=data_module, ckpt_path=None) #ckpt_path can be path to partially trained model
 
+    #Compute testing statistics
+    if misc_args['compute_stats']:
+        trainer.test(model=None if trainer_args['enable_checkpointing'] else model,
+                        ckpt_path='best' if trainer_args['enable_checkpointing'] else None,
+                        datamodule=datamodule)
+
     '''
     Do anything else post training here
     '''
 
 '''
-Parse arguments from configuration file and command line.
-Command line arguments will override their config file counterparts.
+Parse arguments from configuration file and command line. Only Lightning Trainer
+command line arguments will override their config file counterparts.
 '''
 if __name__ == "__main__":
     #Look for config
@@ -105,18 +108,8 @@ if __name__ == "__main__":
     trainer_parser.add_argument("--default_root_dir", type=str)
     trainer_parser.add_argument("--max_time", type=str)
 
-    #model specific args
-    model_parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
-    model_parser = Model.add_args(model_parser)
-
-    #data specific args
-    data_parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
-    data_parser = DataModule.add_args(data_parser)
-
     #look for other CL arguments
     config['train'].update(vars(trainer_parser.parse_known_args()[0]))
-    config['model'].update(vars(model_parser.parse_known_args()[0]))
-    config['data'].update(vars(data_parser.parse_known_args()[0]))
 
     #run main script
     main(experiment, config)

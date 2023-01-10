@@ -1,11 +1,11 @@
-name: pt-lightning
+name: lightning-project
 channels:
   - pytorch
   - conda-forge
   - defaults
 dependencies:
-  - python=3.9
+  - python
   - pytorch
-  - cudatoolkit=11.3
-  - pytorch-lightning=1.6
+  - cudatoolkit
+  - pytorch-lightning
   - yaml
