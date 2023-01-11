@@ -50,5 +50,3 @@ There is a lot of documentation available, but I have picked out some of what I 
 - [LightningModule](https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.core.LightningModule.html?highlight=LightningModule): Overview and introduction on how to use
 - [Trainer](https://pytorch-lightning.readthedocs.io/en/latest/common/trainer.html): Overview and introduction on how to use
 - [Logging](https://pytorch-lightning.readthedocs.io/en/stable/extensions/logging.html): How to log metrics
-
-## License
