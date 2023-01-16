@@ -39,7 +39,12 @@ def main(experiment, config):
     data_module = DataModule(**data_args)
 
     #Build model
-    model = Model(**model_args)
+    if "ckpt_path" in model_args.keys():
+        ckpt_path = model_args["ckpt_path"]
+        model = None
+    else:
+        ckpt_path = None
+        model = Model(**model_args)
 
     #Callbacks
     callbacks = []
@@ -69,7 +74,7 @@ def main(experiment, config):
     if trainer_args['auto_scale_batch_size']:
         trainer.tune(model, datamodule=data_module)
 
-    trainer.fit(model=model, datamodule=data_module, ckpt_path=None) #ckpt_path can be path to partially trained model
+    trainer.fit(model=model, datamodule=data_module, ckpt_path=ckpt_path)
 
     #Compute testing statistics
     if misc_args['compute_stats']:

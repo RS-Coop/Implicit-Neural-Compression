@@ -22,6 +22,7 @@ train:
 
 #Model arguments
 model:
+  ckpt_path: #str, only use this if you want to continue training model from checkpoint
   learning_rate: #float
 
 #PT LightningDataModule arguments
