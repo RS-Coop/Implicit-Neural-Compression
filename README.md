@@ -3,31 +3,31 @@ This is meant to be used as a template for a PyTorch and Lightning based project
 
 ## Environment Setup
 The file `environment.yaml` contains a list of dependencies, and it can be used to generate an anaconda environment with the following command:
-```
+```console
 conda create -file environment.yaml
 ```
 which will install all necessary packages for this template in the conda environment `lightning-project`.
 
 For local development, it is easiest to install `core` as a pip package in editable mode using the following command from within the top level of this repository:
-```
+```console
 pip install -e .
 ```
 Although, the main experiment script can still be run without doing this.
 
 ## Running Experiments
 Use the following command to run an experiment:
-```
+```console
 python main.py --experiment <path to YAML file within ./experiments>
 ```
 If `logger` is set to `True` in the YAML config file, then the results of this experiment will be saved to `lightning_logs/<path to YAML file within ./experiments>`.
 
 To visualize the logging results saved to `lightning_logs/` using tensorboard run the following command:
-```
+```console
 tensorboard --logdir=lightning_logs/
 ```
 
 ## Tips and Tricks
-- Don't use ```.cuda()``` or ```.to(device)```
+- Don't use `.cuda()` or `.to(device)`
 - In the rare case where you do need to place a tensor on the correct device yourself, you should do this in an agnostic manner
 - If you need parameters to be placed on the correct device by Lightning, make sure they are registered as `torch.nn.Parameter`
 - Lightning has a lot of functionality, so always check the documentation.
@@ -37,10 +37,7 @@ tensorboard --logdir=lightning_logs/
 - `data`: Data folders
 - `experiments`: Experiment configuration files
   - `template.yaml`: Detailed experiment template
-- `job_scripts`: HPC job submission scripts
 - `lightning_logs`: Experiment logs
-- `notebooks`: Various Jupyter Notebooks
-- `py_scripts`: Various python scripts
 - `main.py`: Model training and testing script
 
 ## Documentation
