@@ -29,7 +29,7 @@ config_path = args['config']
 if config_path != None:
 
     if mode == 'train':
-        config_file = os.path.join('experiments/', config_path, '.yaml')
+        config_file = os.path.join('experiments/', config_path+'.yaml')
     elif mode == 'test':
         config_file = os.path.join('lightning_logs/', config_path, 'config.yaml')
     else:

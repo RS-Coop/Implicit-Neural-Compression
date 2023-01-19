@@ -15,8 +15,8 @@ def test(log_dir, config):
 
     #Extract args
     trainer_args = config['train']
-    model_args = config['model']
     data_args = config['data']
+    model_args = config['model']
 
     #Build trainer
     logger = Logger(save_dir=log_dir, name='', version='', default_hp_metric=False)

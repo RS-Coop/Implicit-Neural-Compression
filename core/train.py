@@ -17,8 +17,8 @@ def train(config_path, config):
 
     #Extract args
     trainer_args = config['train']
-    model_args = config['model']
     data_args = config['data']
+    model_args = config['model']
     misc_args = config['misc']
 
     #Callbacks
@@ -53,7 +53,7 @@ def train(config_path, config):
 
     #Build model
     if 'ckpt_path' in model_args.keys():
-        model = Model.load_from_checkpoint(model_args['ckpt_path'], **model_args)
+        model = Model.load_from_checkpoint(model_args.pop('ckpt_path'), **model_args)
     else:
         model = Model(**model_args)
 
