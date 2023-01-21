@@ -14,9 +14,20 @@ from .utils import Logger
 def test(log_dir, config):
 
     #Extract args
-    trainer_args = config['train']
     data_args = config['data']
     model_args = config['model']
+    trainer_args = config['train']
+
+    #Setup datamodule
+    datamodule = DataModule(**data_args)
+
+    #Build model
+    try:
+        ckpt_path = list(Path(log_dir, 'checkpoints').rglob('best-epoch=*.ckpt'))[0]
+    except:
+        ckpt_path = list(Path(log_dir, 'checkpoints').rglob('last.ckpt'))[0]
+
+    model = Model.load_from_checkpoint(ckpt_path, **model_args)
 
     #Build trainer
     logger = Logger(save_dir=log_dir, name='', version='', default_hp_metric=False)
@@ -26,14 +37,6 @@ def test(log_dir, config):
     # trainer_args['inference_mode'] = True
 
     trainer = Trainer(**trainer_args)
-
-    #Setup datamodule
-    datamodule = DataModule(**data_args)
-
-    #Build model
-    ckpt_path = list(Path(log_dir, 'checkpoints').rglob('best-epoch=*.ckpt'))[0]
-
-    model = Model.load_from_checkpoint(ckpt_path, **model_args)
 
     with torch.inference_mode():
         #compute testing statistics

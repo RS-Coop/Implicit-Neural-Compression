@@ -16,10 +16,19 @@ from .utils import Logger
 def train(config_path, config):
 
     #Extract args
-    trainer_args = config['train']
     data_args = config['data']
     model_args = config['model']
+    trainer_args = config['train']
     misc_args = config['misc']
+
+    #Setup datamodule
+    data_module = DataModule(**data_args)
+
+    #Build model
+    if 'ckpt_path' in model_args.keys():
+        model = Model.load_from_checkpoint(model_args.pop('ckpt_path'), **model_args)
+    else:
+        model = Model(**model_args)
 
     #Callbacks
     callbacks=[]
@@ -47,15 +56,6 @@ def train(config_path, config):
 
     #Build trainer
     trainer = Trainer(**trainer_args, callbacks=callbacks)
-
-    #Setup datamodule
-    data_module = DataModule(**data_args)
-
-    #Build model
-    if 'ckpt_path' in model_args.keys():
-        model = Model.load_from_checkpoint(model_args.pop('ckpt_path'), **model_args)
-    else:
-        model = Model(**model_args)
 
     #Batch size scaling
     if trainer_args['auto_scale_batch_size']:
