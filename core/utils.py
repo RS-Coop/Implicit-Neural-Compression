@@ -51,3 +51,16 @@ class Logger(TensorBoardLogger):
             yaml.dump(config, file)
 
         return
+
+'''
+Fine tuning callback to freeze particular layers before training.
+'''
+class FineTuner(BaseFinetuning):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def freeze_before_training(self, pl_module):
+        pass
+
+    def finetune_function(self, pl_module, current_epoch, optimizer, optimizer_idx):
+        pass
