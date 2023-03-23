@@ -1,11 +1,13 @@
-name: lightning-project
 channels:
   - pytorch
-  - conda-forge
+  - nvidia
   - defaults
 dependencies:
   - python
   - pytorch
   - cudatoolkit
-  - pytorch-lightning
-  - yaml
+  - pyyaml
+  - pip
+  - pip:
+    - torch_tb_profiler
+    - pytorch-lightning

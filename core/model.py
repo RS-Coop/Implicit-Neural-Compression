@@ -26,10 +26,12 @@ class Model(LightningModule):
         super().__init__()
 
         #Log model hyperparameters
-        self.save_hyperparameters()
+        self.save_hyperparameters(ignore=[])
 
         #Training hyperparameters
         self.learning_rate = learning_rate
+
+        return
 
     '''
     [Optional] A forward eavaluation of the network.
@@ -41,7 +43,7 @@ class Model(LightningModule):
     A single training step on the given batch.
 
     Output:
-        Torch loss
+        torch loss
     '''
     def training_step(self, batch, idx):
         pass
@@ -68,7 +70,7 @@ class Model(LightningModule):
     Configure optimizers and optionally configure learning rate scheduler.
 
     Ouput:
-        Torch optimizer
+        {torch optimizer, torch scheduler}
     '''
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters, lr=self.learning_rate)
@@ -77,3 +79,21 @@ class Model(LightningModule):
         scheduler_config = {"scheduler": scheduler, "monitor": "val_err"}
 
         return {"optimizer": optimizer, "lr_scheduler": scheduler_config}
+
+    '''
+    [Optional] Edit the checkpoint before loading.
+    '''
+    def on_load_checkpoint(self, checkpoint):
+
+        # state_dict = checkpoint["state_dict"]
+
+        return
+
+    '''
+    [Optional] Edit the checkpoint before saving.
+    '''
+    def on_save_checkpoint(self, checkpoint):
+
+        # state_dict = checkpoint["state_dict"]
+
+        return

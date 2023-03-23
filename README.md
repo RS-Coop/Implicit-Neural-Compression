@@ -4,9 +4,9 @@ This is meant to be used as a template for a PyTorch and Lightning based project
 ## Environment Setup
 The file `environment.yaml` contains a list of dependencies, and it can be used to generate an anaconda environment with the following command:
 ```console
-conda create -file environment.yaml
+conda create -f=environment.yaml -n=<environment-name>
 ```
-which will install all necessary packages for this template in the conda environment `lightning-project`.
+which will install all necessary packages for this template in the conda environment `environment-name`.
 
 For local development, it is easiest to install `core` as a pip package in editable mode using the following command from within the top level of this repository:
 ```console
