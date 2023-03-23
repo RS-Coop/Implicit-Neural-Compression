@@ -57,10 +57,6 @@ def train(config_path, config):
     #Build trainer
     trainer = Trainer(**trainer_args, callbacks=callbacks)
 
-    #Batch size scaling
-    if trainer_args['auto_scale_batch_size']:
-        trainer.tune(model, datamodule=datamodule)
-
     #Train model
     trainer.fit(model=model, datamodule=datamodule)
 
