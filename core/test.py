@@ -34,10 +34,8 @@ def test(log_dir, config):
 
     trainer_args['logger'] = logger
     trainer_args["devices"] = 1
-    # trainer_args['inference_mode'] = True
 
-    trainer = Trainer(**trainer_args)
+    trainer = Trainer(**trainer_args, inference_mode=True)
 
-    with torch.inference_mode():
-        #compute testing statistics
-        trainer.test(model=model, datamodule=datamodule)
+    #compute testing statistics
+    trainer.test(model=model, datamodule=datamodule)
