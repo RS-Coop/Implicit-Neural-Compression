@@ -22,21 +22,22 @@ def train(config_path, config):
     misc_args = config['misc']
 
     #Setup datamodule
-    data_module = DataModule(**data_args)
+    datamodule = DataModule(**data_args)
 
     #Build model
     if 'ckpt_path' in model_args.keys():
-        model = Model.load_from_checkpoint(model_args.pop('ckpt_path'), **model_args)
+        model = Model.load_from_checkpoint(model_args.pop('ckpt_path'), input_shape=datamodule.input_shape, output_shape=datamodule.output_shape, **model_args)
     else:
-        model = Model(**model_args)
+        model = Model(input_shape=datamodule.input_shape, output_shape=datamodule.output_shape, **model_args)
 
     #Callbacks
     callbacks=[]
+
     if misc_args['early_stopping']:
-        callbacks.append(EarlyStopping(monitor="val_loss"))
+        callbacks.append(EarlyStopping(monitor="val_err"))
 
     if trainer_args['enable_checkpointing']:
-        callbacks.append(ModelCheckpoint(monitor='val_loss',
+        callbacks.append(ModelCheckpoint(monitor='val_err',
                                             save_last=True,
                                             save_top_k=1,
                                             mode='min',
@@ -59,15 +60,5 @@ def train(config_path, config):
 
     #Train model
     trainer.fit(model=model, datamodule=datamodule)
-
-    #Compute testing statistics
-    if misc_args['compute_stats']:
-        trainer.test(model=None if trainer_args['enable_checkpointing'] else model,
-                        ckpt_path='best' if trainer_args['enable_checkpointing'] else None,
-                        datamodule=datamodule)
-
-    '''
-    Do anything else post training here
-    '''
 
     return

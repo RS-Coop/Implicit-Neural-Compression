@@ -6,9 +6,12 @@ LightningModule documentation:
 '''
 
 import torch
+import torch.nn as nn
 from pytorch_lightning import LightningModule
+import torchmetrics as tm
 
-from .modules import Module1
+from .metrics import R3Error, PSNR
+from .modules import Siren
 
 '''
 '''
@@ -20,8 +23,11 @@ class Model(LightningModule):
         loss_fn: model loss function for training
     '''
     def __init__(self,
-            loss_fn,
-            learning_rate = 1e-2
+            input_shape,
+            output_shape,
+            loss_fn = "MSELoss",
+            learning_rate = 1e-2,
+            output_activation = "Tanh",
         ):
         super().__init__()
 
@@ -31,13 +37,35 @@ class Model(LightningModule):
         #Training hyperparameters
         self.learning_rate = learning_rate
 
+        #
+        self.example_input_array = torch.zeros(input_shape)
+
+        #Loss function
+        try:
+            self.loss_fn = getattr(tcl, loss_fn)()
+        except:
+            self.loss_fn = getattr(nn, loss_fn)()
+
+        #Build SIREN
+        self.output_activation = getattr(nn, output_activation)()
+
+        self.siren = Siren(input_shape[1], 128, 5, output_shape[1], outermost_linear=True)
+
+        #Metrics
+        self.val_error = tm.MeanSquaredError()
+        self.test_error = R3Error(num_channels=output_shape[1])
+        self.test_metrics = tm.MetricCollection([PSNR()])
+
+        self.prefix = ''
+        self.denormalize = None
+
         return
 
     '''
     [Optional] A forward eavaluation of the network.
     '''
-    def forward(self, x):
-        pass
+    def forward(self, coords):
+        return self.output_activation(self.siren(coords))
 
     '''
     A single training step on the given batch.
@@ -46,25 +74,85 @@ class Model(LightningModule):
         torch loss
     '''
     def training_step(self, batch, idx):
-        pass
+        coords, features = batch
+
+        preds = self(coords)
+
+        loss = self.loss_fn(preds, features)
+        self.log('train_loss', loss, on_step=False, on_epoch=True, sync_dist=True)
+
+        return loss
 
     '''
     [Optional] A single validation step.
     '''
     def validation_step(self, batch, idx):
-        pass
+        coords, features = batch
+
+        #predictions
+        preds = self(coords)
+
+        #compute error
+        self.val_error.update(preds, features)
+
+        #log validation error
+        self.log('val_err', self.val_error, on_step=False, on_epoch=True)
+
+        return
 
     '''
     [Optional] A single test step.
     '''
     def test_step(self, batch, idx):
-        pass
+        coords, features = batch
+
+        #predictions
+        preds = self(coords)
+
+        #update error
+        if self.denormalize != None:
+            preds = self.denormalize(preds)
+            features = self.denormalize(features)
+
+        self.test_error.update(preds, features)
+
+        #log other metrics
+        self.test_metrics.update(preds, features)
+
+        return
+    
+    def on_test_epoch_end(self):
+        #log average and max error w.r.t batch
+        err = self.test_error.compute(reduce_channels=False)
+        max_err = self.test_error.max
+
+        self.log(self.prefix+'test_avg_err', torch.mean(err), on_step=False, on_epoch=True)
+        self.log(self.prefix+'test_max_err', max_err, on_step=False, on_epoch=True)
+        
+        #per channel error
+        if err.ndim != 0:
+            for i, channel_error in enumerate(err):
+                self.log(self.prefix+f"c_{i}_err", channel_error, on_step=False, on_epoch=True)
+
+        #log other test metrics
+        metric_dict = self.test_metrics.compute()
+        
+        for key, value in metric_dict.items():
+            self.log(self.prefix+key, value, on_step=False, on_epoch=True)
+
+        #reset metrics
+        self.test_error.reset()
+        self.test_metrics.reset()
+
+        return
 
     '''
     [Optional] A single prediction step.
     '''
     def predict_step(self, batch, idx):
-        pass
+        coords, _ = batch
+
+        return self(coords)
 
     '''
     Configure optimizers and optionally configure learning rate scheduler.
@@ -73,9 +161,9 @@ class Model(LightningModule):
         {torch optimizer, torch scheduler}
     '''
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters, lr=self.learning_rate)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
 
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=50, factor=0.2, verbose=True)
         scheduler_config = {"scheduler": scheduler, "monitor": "val_err"}
 
         return {"optimizer": optimizer, "lr_scheduler": scheduler_config}

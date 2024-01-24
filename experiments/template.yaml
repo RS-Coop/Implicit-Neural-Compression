@@ -26,10 +26,17 @@ model:
 
 #PT LightningDataModule arguments
 data:
-  data_dir: #str
+  spatial_dim: #int
+  points_path: #str
+  features_path: #str
   batch_size: #int
+  channels: #list[int]
+  normalize: #bool
+  split: #float [0,1]
+  shuffle: #bool
 
-#Extra arguments
-extra:
-  compute_stats: #bool
+#Miscellaneous arguments
+misc:
   early_stopping: #bool
+  make_gif: #bool
+  compute_stats: #bool

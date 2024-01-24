@@ -10,11 +10,14 @@ Example usage:
         python main.py --mode test --config example/config_1/version_0
 '''
 
+import torch
 import argparse
 import os
 import yaml
 
 from core import train, test
+
+torch.set_float32_matmul_precision('medium') #or 'high'
 
 #Parse args
 parser = argparse.ArgumentParser()
@@ -27,6 +30,8 @@ config_path = args['config']
 
 #Load config
 if config_path != None:
+
+    print(f"\nRunning experiment: {config_path}")
 
     if mode == 'train':
         config_file = os.path.join('experiments/', config_path+'.yaml')

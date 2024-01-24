@@ -7,6 +7,9 @@ from pathlib import Path
 import torch
 from pytorch_lightning import Trainer
 
+from .gif import make_gif
+from torch_compression.analysis.misc import compute_stats
+
 from core.model import Model
 from core.data import DataModule
 from .utils import Logger
@@ -17,6 +20,7 @@ def test(log_dir, config):
     data_args = config['data']
     model_args = config['model']
     trainer_args = config['train']
+    misc_args = config['misc']
 
     #Setup datamodule
     datamodule = DataModule(**data_args)
@@ -27,7 +31,10 @@ def test(log_dir, config):
     except:
         ckpt_path = list(Path(log_dir, 'checkpoints').rglob('last.ckpt'))[0]
 
-    model = Model.load_from_checkpoint(ckpt_path, **model_args)
+    if 'ckpt_path' in model_args.keys():
+        model_args.pop('ckpt_path')
+
+    model = Model.load_from_checkpoint(ckpt_path, input_shape=datamodule.input_shape, output_shape=datamodule.output_shape, **model_args)
 
     #Build trainer
     logger = Logger(save_dir=log_dir, name='', version='', default_hp_metric=False)
@@ -35,7 +42,26 @@ def test(log_dir, config):
     trainer_args['logger'] = logger
     trainer_args["devices"] = 1
 
+    if "strategy" in trainer_args.keys():
+        trainer_args.pop("strategy")
+
     trainer = Trainer(**trainer_args, inference_mode=True)
 
     #compute testing statistics
     trainer.test(model=model, datamodule=datamodule)
+
+    #make GIF
+    if misc_args.get('make_gif'):
+        make_gif(trainer, datamodule, model)
+
+    if misc_args.get('compute_stats'):
+        #run on test
+        datamodule.setup('test')
+        model.prefix = 'real_'
+        model.denormalize = datamodule.test.denormalize
+
+        with torch.inference_mode():
+            trainer.test(model=model, datamodule=datamodule)
+
+    return
+
