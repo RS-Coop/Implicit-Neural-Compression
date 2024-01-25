@@ -85,7 +85,7 @@ def make_gif(trainer, datamodule, model):
         fig.colorbar(im2, ax=axis[1], location='left')
         fig.colorbar(im3, ax=axis[2], location='left')
 
-    for c in range(data.shape[1]):
+    for c in range(data.shape[2]):
         print(f"\nMaking GIF for channel {c}...")
 
         #build frames

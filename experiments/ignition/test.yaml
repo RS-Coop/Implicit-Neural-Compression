@@ -4,7 +4,7 @@
 #Documentation: https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
 #Comment out options you aren't using
 train:
-  accelerator: "cpu" #str e.g. "gpu"
+  accelerator: "gpu" #str e.g. "gpu"
   devices: "auto" #int
   # num_nodes: #int
   # strategy: #str
@@ -14,7 +14,7 @@ train:
   default_root_dir: "./lightning_logs" #str
   logger: True #bool
   log_every_n_steps: 1 #int
-  enable_progress_bar: False #bool
+  enable_progress_bar: True #bool
   # profiler: #str
   max_epochs: 10000 #int
   # max_steps: #int
@@ -22,21 +22,22 @@ train:
 #Model arguments
 model:
   # ckpt_path: #str, only use this if you want to continue training model from checkpoint
-  learning_rate: 0.001 #float
+  learning_rate: 0.0001 #float
+  scheduler: True
 
 #PT LightningDataModule arguments
 data:
   spatial_dim: 2 #int
   points_path: "points.npy" #str
   features_path: "features.npy" #str
-  batch_size: 128 #int
-  channels: [0,1,2,3] #list[int]
+  batch_size: 2375 #int
+  channels: [1] #list[int]
   normalize: True #bool
-  split: 0.85 #float [0,1]
+  split: 0.95 #float [0,1]
   shuffle: True #bool
 
 #Miscellaneous arguments
 misc:
   early_stopping: False #bool
   make_gif: True #bool
-  compute_stats: True #bool
+  compute_stats: False #bool
