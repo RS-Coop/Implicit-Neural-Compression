@@ -12,6 +12,7 @@ import torchmetrics as tm
 
 from .metrics import r3error, R3Error, PSNR
 from .modules import Siren
+from.dowg import DoWG
 
 class R3Loss(nn.Module):
 
@@ -170,7 +171,8 @@ class Model(LightningModule):
         {torch optimizer, torch scheduler}
     '''
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
+        # optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
+        optimizer = DoWG(self.parameters())
     
         if self.scheduler:
             scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=50, factor=0.75, verbose=True)

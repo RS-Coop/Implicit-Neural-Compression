@@ -16,6 +16,7 @@ train:
   log_every_n_steps: 1 #int
   enable_progress_bar: False #bool
   # profiler: #str
+  limit_val_batches: 0 #bool
   max_epochs: 10000 #int
   # max_steps: #int
 
@@ -23,17 +24,17 @@ train:
 model:
   # ckpt_path: #str, only use this if you want to continue training model from checkpoint
   learning_rate: 0.0001 #float
-  scheduler: True
+  scheduler: False
 
 #PT LightningDataModule arguments
 data:
   spatial_dim: 2 #int
-  points_path: "points.npy" #str
-  features_path: "features.npy" #str
-  batch_size: 9060 #int
-  channels: [1,2,3] #list[int]
+  points_path: "points_p1.npy" #str
+  features_path: "features_p1.npy" #str
+  batch_size: 9956 #9060 #int
+  channels: [1] #list[int]
   normalize: True #bool
-  split: 0.91 #float [0,1]
+  split: 1.0 #.91 #float [0,1]
   shuffle: True #bool
 
 #Miscellaneous arguments
