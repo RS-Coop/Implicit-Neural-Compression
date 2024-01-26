@@ -37,7 +37,7 @@ def train(config_path, config):
         callbacks.append(EarlyStopping(monitor="val_err"))
 
     if trainer_args['enable_checkpointing']:
-        if trainer_args['limit_val_batches'] != 0:
+        if trainer_args.get('limit_val_batches') != 0:
             monitor = 'val_err'
         else:
             monitor = None

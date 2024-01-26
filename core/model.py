@@ -37,7 +37,7 @@ class Model(LightningModule):
             input_shape,
             output_shape,
             loss_fn = "MSELoss",
-            learning_rate = 1e-2,
+            learning_rate = 1e-4,
             scheduler = True,
             output_activation = "Tanh",
         ):
@@ -171,8 +171,8 @@ class Model(LightningModule):
         {torch optimizer, torch scheduler}
     '''
     def configure_optimizers(self):
-        # optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
-        optimizer = DoWG(self.parameters())
+        optimizer = torch.optim.RAdam(self.parameters(), lr=self.learning_rate)
+        # optimizer = DoWG(self.parameters())
     
         if self.scheduler:
             scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=50, factor=0.75, verbose=True)
