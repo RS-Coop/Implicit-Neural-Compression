@@ -15,7 +15,7 @@ train:
   log_every_n_steps: #int
   enable_progress_bar: #bool
   profiler: #str
-  limit_val_batches: #bool
+  limit_val_batches: #int
   max_epochs: #int
   max_steps: #int
   logger: #bool

@@ -12,7 +12,7 @@ import torchmetrics as tm
 
 from .metrics import r3error, R3Error, PSNR
 from .modules import Siren
-from.dowg import DoWG
+# from .adahessian import Adahessian
 
 class R3Loss(nn.Module):
 
@@ -60,7 +60,7 @@ class Model(LightningModule):
         #Build SIREN
         self.output_activation = getattr(nn, output_activation)()
 
-        self.siren = Siren(input_shape[1], 256, 3, output_shape[1], outermost_linear=True)
+        self.siren = Siren(input_shape[1], 200, 5, output_shape[1], outermost_linear=True)
 
         #Metrics
         self.error = R3Error(num_channels=output_shape[1])
@@ -68,6 +68,9 @@ class Model(LightningModule):
 
         self.prefix = ''
         self.denormalize = None
+
+        #manual optimization
+        # self.automatic_optimization = False
 
         return
 
@@ -84,6 +87,8 @@ class Model(LightningModule):
         torch loss
     '''
     def training_step(self, batch, idx):
+        # opt = self.optimizers()
+
         coords, features = batch
 
         preds = self(coords)
@@ -91,7 +96,17 @@ class Model(LightningModule):
         loss = self.loss_fn(preds, features)
         self.log('train_loss', loss, on_step=False, on_epoch=True, sync_dist=True)
 
+        # opt.zero_grad()
+        # self.manual_backward(loss, create_graph=False)
+
         return loss
+
+        # opt.step()
+
+        # for p in self.parameters():
+        #     p.grad = None
+
+        return
 
     '''
     [Optional] A single validation step.
@@ -172,7 +187,7 @@ class Model(LightningModule):
     '''
     def configure_optimizers(self):
         optimizer = torch.optim.RAdam(self.parameters(), lr=self.learning_rate)
-        # optimizer = DoWG(self.parameters())
+        # optimizer = Adahessian(self.parameters())
     
         if self.scheduler:
             scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=50, factor=0.75, verbose=True)

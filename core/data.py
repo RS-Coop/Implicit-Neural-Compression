@@ -48,12 +48,12 @@ class MeshDataset(Dataset):
             raise e
         
         if normalize:
-            mean = torch.mean(f, dim=(0,1), keepdim=True)
-            stdv = torch.sqrt(torch.var(f, dim=(0,1), keepdim=True))
+            mean = torch.mean(f, dim=(0,1))
+            stdv = torch.sqrt(torch.var(f, dim=(0,1)))
 
             f = (f-mean)/stdv
 
-            max = torch.amax(torch.abs(f), dim=(0,1), keepdim=True)
+            max = torch.amax(torch.abs(f), dim=(0,1))
 
             f = f/max
 
