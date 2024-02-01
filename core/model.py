@@ -11,7 +11,8 @@ from pytorch_lightning import LightningModule
 import torchmetrics as tm
 
 from .metrics import r3error, R3Error, PSNR
-from .modules import Siren
+from .siren import Siren
+from .wire import Wire
 # from .adahessian import Adahessian
 
 class R3Loss(nn.Module):
@@ -36,6 +37,8 @@ class Model(LightningModule):
     def __init__(self,
             input_shape,
             output_shape,
+            hidden_features = 128,
+            hidden_layers = 3,
             loss_fn = "MSELoss",
             learning_rate = 1e-4,
             scheduler = True,
@@ -57,10 +60,11 @@ class Model(LightningModule):
         # self.loss_fn = getattr(nn, loss_fn)()
         self.loss_fn = R3Loss()
 
-        #Build SIREN
+        #Build INR network
         self.output_activation = getattr(nn, output_activation)()
 
-        self.siren = Siren(input_shape[1], 200, 5, output_shape[1], outermost_linear=True)
+        self.inr = Siren(input_shape[1], hidden_features, hidden_layers, output_shape[1], outermost_linear=True)
+        # self.inr = Wire(input_shape[1], hidden_features, hidden_layers, output_shape[1], outermost_linear=True)
 
         #Metrics
         self.error = R3Error(num_channels=output_shape[1])
@@ -78,7 +82,7 @@ class Model(LightningModule):
     [Optional] A forward eavaluation of the network.
     '''
     def forward(self, coords):
-        return self.output_activation(self.siren(coords))
+        return self.output_activation(self.inr(coords))
 
     '''
     A single training step on the given batch.

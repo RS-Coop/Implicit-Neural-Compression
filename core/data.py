@@ -75,7 +75,7 @@ class MeshDataset(Dataset):
         i = idx%self.num_points
         t = torch.tensor(idx//self.num_points)
 
-        return (torch.cat((self.p[i,:],t.unsqueeze(0))), self.f[t,i,:])
+        return torch.cat((self.p[i,:],t.unsqueeze(0))), self.f[t,i,:]
     
     def getall(self, denormalize=True):
 
