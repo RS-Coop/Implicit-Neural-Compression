@@ -32,7 +32,7 @@ model:
 #PT LightningDataModule arguments
 data:
   spatial_dim: 2 #int
-  points_path: "points_p1.npy" #str
+  points_path: "points_norm.npy" #str
   features_path: "features_p1.npy" #str
   batch_size: 9060 #int
   channels: [1] #list[int]

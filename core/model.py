@@ -37,6 +37,7 @@ class Model(LightningModule):
     def __init__(self,
             input_shape,
             output_shape,
+            inr_type = "siren",
             hidden_features = 128,
             hidden_layers = 3,
             loss_fn = "MSELoss",
@@ -63,8 +64,12 @@ class Model(LightningModule):
         #Build INR network
         self.output_activation = getattr(nn, output_activation)()
 
-        self.inr = Siren(input_shape[1], hidden_features, hidden_layers, output_shape[1], outermost_linear=True)
-        # self.inr = Wire(input_shape[1], hidden_features, hidden_layers, output_shape[1], outermost_linear=True)
+        if inr_type == "siren":
+            self.inr = Siren(input_shape[1], hidden_features, hidden_layers, output_shape[1], outermost_linear=True)
+        elif inr_type == "wire":
+            self.inr = Wire(input_shape[1], hidden_features, hidden_layers, output_shape[1], outermost_linear=True)
+        else:
+            raise Exception(f'Invalid inr_type {inr_type}')
 
         #Metrics
         self.error = R3Error(num_channels=output_shape[1])
@@ -91,8 +96,6 @@ class Model(LightningModule):
         torch loss
     '''
     def training_step(self, batch, idx):
-        # opt = self.optimizers()
-
         coords, features = batch
 
         preds = self(coords)
@@ -100,17 +103,7 @@ class Model(LightningModule):
         loss = self.loss_fn(preds, features)
         self.log('train_loss', loss, on_step=False, on_epoch=True, sync_dist=True)
 
-        # opt.zero_grad()
-        # self.manual_backward(loss, create_graph=False)
-
         return loss
-
-        # opt.step()
-
-        # for p in self.parameters():
-        #     p.grad = None
-
-        return
 
     '''
     [Optional] A single validation step.

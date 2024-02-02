@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --time=12:45:00
+#SBATCH --time=15:45:00
 #SBATCH --qos=preemptable
 #SBATCH --job-name=ignition
 #SBATCH --gres=gpu:a100:1
@@ -11,8 +11,8 @@
 #ntasks-per-node should match num_gpus
 #cpus-per-task per node should be num_workers per gpu
 
-TEST=flat_plate_2d/c1
-TIME=00:12:00:00
+TEST=flat_plate_2d/siren
+TIME=00:15:00:00
 PYTHON=/projects/cosi1728/software/anaconda/envs/compression/bin/python
 
 DATA_DIR=data/flat_plate_2d_cut

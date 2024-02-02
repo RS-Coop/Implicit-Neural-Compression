@@ -17,12 +17,15 @@ train:
   enable_progress_bar: False #bool
   # profiler: #str
   limit_val_batches: 0 #int
-  max_epochs: 10 #int
+  max_epochs: 100 #int
   # max_steps: #int
 
 #Model arguments
 model:
   # ckpt_path: #str, only use this if you want to continue training model from checkpoint
+  inr_type: "wire"
+  hidden_features: 256
+  hidden_layers: 3
   learning_rate: 0.005 #float
   scheduler: False
   output_activation: "Tanh"

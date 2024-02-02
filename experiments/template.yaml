@@ -23,7 +23,12 @@ train:
 #Model arguments
 model:
   ckpt_path: #str, only use this if you want to continue training model from checkpoint
+  inr_type: #str
+  hidden_features: #int
+  hidden_layers: #int
   learning_rate: #float
+  scheduler: #bool
+  output_activation: #str
 
 #PT LightningDataModule arguments
 data:

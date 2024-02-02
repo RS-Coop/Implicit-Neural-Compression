@@ -5,7 +5,46 @@ https://github.com/vishwa91/wire/blob/main/modules/wire.py
 import numpy as np
 import torch
 from torch import nn
-import torch.nn.functional as F
+
+class RealGaborLayer(nn.Module):
+    '''
+        Implicit representation with Gabor nonlinearity
+        
+        Inputs;
+            in_features: Input features
+            out_features; Output features
+            bias: if True, enable bias for the linear operation
+            is_first: Legacy SIREN parameter
+            omega_0: Legacy SIREN parameter
+            omega: Frequency of Gabor sinusoid term
+            scale: Scaling of Gabor Gaussian term
+    '''
+    
+    def __init__(self,
+                 in_features,
+                 out_features,
+                 bias=True,
+                 is_first=False,
+                 omega0=10.0,
+                 sigma0=10.0,
+                 trainable=False
+        ):
+        super().__init__()
+
+        self.omega_0 = omega0
+        self.scale_0 = sigma0
+        self.is_first = is_first
+        
+        self.in_features = in_features
+        
+        self.freqs = nn.Linear(in_features, out_features, bias=bias)
+        self.scale = nn.Linear(in_features, out_features, bias=bias)
+        
+    def forward(self, input):
+        omega = self.omega_0 * self.freqs(input)
+        scale = self.scale(input) * self.scale_0
+        
+        return torch.cos(omega)*torch.exp(-(scale**2))
 
 class ComplexGaborLayer(nn.Module):
     '''
@@ -22,10 +61,17 @@ class ComplexGaborLayer(nn.Module):
             trainable: If True, omega and sigma are trainable parameters
     '''
     
-    def __init__(self, in_features, out_features, bias=True,
-                 is_first=False, omega0=10.0, sigma0=40.0,
-                 trainable=False):
+    def __init__(self,
+                in_features,
+                out_features,
+                bias=True,
+                is_first=False,
+                omega0=10.0,
+                sigma0=40.0,
+                trainable=False
+        ):
         super().__init__()
+
         self.omega_0 = omega0
         self.scale_0 = sigma0
         self.is_first = is_first
@@ -54,22 +100,30 @@ class ComplexGaborLayer(nn.Module):
         return torch.exp(1j*omega - scale.abs().square())
     
 class Wire(nn.Module):
-    def __init__(self, in_features, hidden_features, 
-                 hidden_layers, 
-                 out_features, outermost_linear=True,
-                 first_omega_0=30, hidden_omega_0=30, scale=10.0):
+    def __init__(self,
+                in_features,
+                hidden_features, 
+                hidden_layers, 
+                out_features,
+                outermost_linear=True,
+                first_omega_0=30,
+                hidden_omega_0=30,
+                scale=10.0
+        ):
         super().__init__()
         
         # All results in the paper were with the default complex 'gabor' nonlinearity
         self.nonlin = ComplexGaborLayer
+        # self.nonlin = RealGaborLayer
         
         # Since complex numbers are two real numbers, reduce the number of 
         # hidden parameters by 2
-        hidden_features = int(hidden_features/np.sqrt(2))
+        # hidden_features = int(hidden_features/np.sqrt(2))
         dtype = torch.cfloat
+        # dtype = torch.float
         self.complex = True
             
-        self.net = []
+        self.net = nn.Sequential()
         self.net.append(self.nonlin(in_features,
                                     hidden_features, 
                                     omega0=first_omega_0,
@@ -84,13 +138,9 @@ class Wire(nn.Module):
                                         sigma0=scale,
                                         trainable=False))
 
-        final_linear = nn.Linear(hidden_features,
-                                 out_features,
-                                 dtype=dtype)
-                   
-        self.net.append(final_linear)
-        
-        self.net = nn.Sequential(*self.net)
+        self.net.append(nn.Linear(hidden_features,
+                                    out_features,
+                                    dtype=dtype))
     
     def forward(self, coords):
         output = self.net(coords)
