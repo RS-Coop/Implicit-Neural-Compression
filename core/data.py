@@ -7,7 +7,6 @@ LightningDataModule documentation:
 
 import pathlib
 from warnings import warn
-from natsort import natsorted
 
 import numpy as np
 import torch
