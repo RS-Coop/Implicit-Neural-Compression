@@ -54,12 +54,12 @@ class Siren(nn.Module):
         self.net = []
         self.net.append(SineLayer(in_features, hidden_features, 
                                   is_first=True, omega_0=first_omega_0))
-        self.net.append(nn.Dropout(p=0.2))
+        # self.net.append(nn.Dropout(p=0.2))
 
         for i in range(hidden_layers):
             self.net.append(SineLayer(hidden_features, hidden_features, 
                                       is_first=False, omega_0=hidden_omega_0))
-            self.net.append(nn.Dropout(p=0.2))
+            # self.net.append(nn.Dropout(p=0.2))
 
         if outermost_linear:
             final_linear = nn.Linear(hidden_features, out_features)
@@ -73,7 +73,7 @@ class Siren(nn.Module):
             self.net.append(SineLayer(hidden_features, out_features, 
                                       is_first=False, omega_0=hidden_omega_0))
             
-        self.net.append(nn.Dropout(p=0.2))
+        # self.net.append(nn.Dropout(p=0.2))
         
         self.net = nn.Sequential(*self.net)
     
