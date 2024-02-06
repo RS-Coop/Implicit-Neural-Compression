@@ -24,7 +24,7 @@ def get_plot_func(points):
         def plot_func(f, ax, norm=Normalize, vmin=None, vmax=None, **kwargs):
             return ax.tripcolor(triangulation, f, norm=norm(vmin=vmin, vmax=vmax), **kwargs)
 
-    if points.shape[1] == 3:
+    elif points.shape[1] == 3:
         #select points along fixed y
         idxs = torch.where(points[:,1]==0.0)
 
