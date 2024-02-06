@@ -26,7 +26,7 @@ def get_plot_func(points):
 
     elif points.shape[1] == 3:
         #select points along fixed y
-        idxs = torch.where(points[:,1]==0.0)
+        idxs = torch.where(points[:,1]==0.0)[0]
 
         #triangulate and save
         triangulation = Triangulation(points[idxs,0], points[idxs,2])
