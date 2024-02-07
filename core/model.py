@@ -10,20 +10,9 @@ import torch.nn as nn
 from pytorch_lightning import LightningModule
 import torchmetrics as tm
 
-from .metrics import r3error, R3Error, PSNR
+from .metrics import R3Error, PSNR
 from .siren import Siren
 from .wire import Wire
-# from .adahessian import Adahessian
-
-class R3Loss(nn.Module):
-
-    def __init__(self, reduction="mean"):
-        super().__init__()
-
-        self.reduction = reduction
-
-    def forward(self, input, target):
-        return torch.mean(r3error(input, target))
 
 '''
 '''

@@ -55,6 +55,28 @@ class R3Error(Metric):
 
         return err
 
+################################################################################
+
+# '''
+# '''
+# def w2error(preds, targets):
+#     pass
+
+# class W2Error(Metric):
+
+#     #metric attributes
+#     is_differentiable = False
+#     higher_is_better = False
+#     full_state_update = False
+
+#     def __init__(self, num_channels):
+#         super().__init__()
+#         self.add_state("error", default=torch.zeros(num_channels), dist_reduce_fx="sum")
+#         self.add_state("max", default=torch.tensor(0.0), dist_reduce_fx="max")
+#         self.add_state("num_samples", default=torch.tensor(0), dist_reduce_fx="sum")
+
+################################################################################
+
 '''
 Peak Signal to Noise Ratio
 

@@ -33,7 +33,7 @@ model:
 data:
   spatial_dim: 3 #int
   points_path: "points.npy" #str
-  features_path: "features_short.npy" #str
+  features_path: "features.npy" #str
   batch_size: 252655 #9060 #int
   channels: [0,1,2] #list[int]
   normalize: True #bool
