@@ -13,6 +13,7 @@ import torchmetrics as tm
 from .metrics import R3Error, PSNR
 from .siren import Siren
 from .wire import Wire
+from .loss import R3Loss
 
 '''
 '''
