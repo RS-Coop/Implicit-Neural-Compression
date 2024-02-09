@@ -38,7 +38,7 @@ data:
   channels: [0,1,2] #list[int]
   normalize: True #bool
   split: 0.92 #float [0,1]
-  shuffle: False #bool
+  shuffle: True #bool
 
 #Miscellaneous arguments
 misc:

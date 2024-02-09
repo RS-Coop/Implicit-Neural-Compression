@@ -25,15 +25,20 @@ Order 2 Sobolev loss
 '''
 class W2Loss(nn.Module):
 
-    def __init__(self, reduction="mean"):
+    def __init__(self, reduction="mean", time_diff=False):
         super().__init__()
 
         self.reduction = reduction
+        self.time_diff = time_diff
 
     def forward(self, input, preds, target):
 
         #compute jacobian
         J = jacobian(preds, input)
+
+        #don't include time derivative
+        if not self.time_diff:
+            J = J[:,:,:-1]
 
         #concatenate with preds
         preds = torch.cat(preds, J.reshape(-1), dim=1)
