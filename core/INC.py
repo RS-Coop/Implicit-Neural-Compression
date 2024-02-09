@@ -80,7 +80,7 @@ class Model(LightningModule):
     [Optional] A forward eavaluation of the network.
     '''
     def forward(self, args):
-        return self.output_activation(self.inr(args)+self.skip(args[3:]))
+        return self.output_activation(self.inr(args)+self.skip(args[:,3:]))
 
     '''
     A single training step on the given batch.

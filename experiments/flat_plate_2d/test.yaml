@@ -9,20 +9,23 @@ train:
   # num_nodes: #int
   # strategy: #str
   # precision: #str
-  enable_checkpointing: True #bool
+  enable_checkpointing: False #bool
   check_val_every_n_epoch: 1 #int
   default_root_dir: "./lightning_logs" #str
-  logger: True #bool
+  logger: False #bool
   log_every_n_steps: 1 #int
   enable_progress_bar: True #bool
   # profiler: #str
   limit_val_batches: 0 #bool
-  max_epochs: 200 #int
-  # max_steps: #int
+  # max_epochs: #int
+  max_steps: 1 #int
 
 #Model arguments
 model:
   # ckpt_path: #str, only use this if you want to continue training model from checkpoint
+  inr_type: "siren"
+  hidden_features: 50
+  hidden_layers: 5
   learning_rate: 0.0001 #float
   scheduler: False
 
@@ -35,7 +38,7 @@ data:
   channels: [1] #list[int]
   normalize: True #bool
   split: 1.0 #float [0,1]
-  shuffle: False #bool
+  shuffle: True #bool
 
 #Miscellaneous arguments
 misc:

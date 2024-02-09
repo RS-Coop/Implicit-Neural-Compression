@@ -136,7 +136,7 @@ class DataModule(LightningDataModule):
     
     @property
     def input_shape(self):
-        return (1, self.spatial_dim+1)
+        return (1, self.spatial_dim+1+2+2*len(self.channels))
 
     @property
     def output_shape(self):
