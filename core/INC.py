@@ -62,7 +62,11 @@ class Model(LightningModule):
             raise Exception(f'Invalid inr_type {inr_type}')
         
         #Build skip connection
-        self.skip = nn.Linear(2+2*output_shape[1], output_shape[1])
+        self.skip = nn.Sequential(nn.Linear(2+2*output_shape[1], 10),
+                                    nn.ReLU(),
+                                    nn.Linear(10,10),
+                                    nn.ReLU(),
+                                    nn.Linear(10, output_shape[1]))
 
         #Metrics
         self.error = R3Error(num_channels=output_shape[1])

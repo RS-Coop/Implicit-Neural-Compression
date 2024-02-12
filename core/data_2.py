@@ -75,7 +75,7 @@ class MeshDataset(Dataset):
         t = idx//self.num_points
 
         #normalized time
-        t_coords = torch.tensor([t/self.num_snapshots, 0, self.num_snapshots-1])
+        t_coords = torch.tensor([t/(self.num_snapshots-1), 0, 1])
 
         return torch.cat((self.p[i,:], t_coords, self.f[0,i,:], self.f[-1,i,:])), self.f[t,i,:]
     
