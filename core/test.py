@@ -10,10 +10,10 @@ from pytorch_lightning import Trainer
 from .gif import make_gif
 from torch_compression.analysis.misc import compute_stats
 
-# from core.model import Model
-# from core.data import DataModule
-from core.INC import Model
-from core.data_2 import DataModule
+from core.model import Model
+from core.data import DataModule
+# from core.INC import Model
+# from core.data_2 import DataModule
 from .utils import Logger
 
 def test(log_dir, config):
@@ -60,7 +60,7 @@ def test(log_dir, config):
         #run on test
         datamodule.setup('test')
         model.prefix = 'real_'
-        model.denormalize = datamodule.test.denormalize
+        model.denormalize = datamodule.test.denorm_f
 
         with torch.inference_mode():
             trainer.test(model=model, datamodule=datamodule)

@@ -58,7 +58,7 @@ def make_gif(trainer, datamodule, model):
     data = datamodule.predict.denormalize(torch.stack(data))
 
     #get original data
-    raw = datamodule.predict.getall()
+    raw = datamodule.predict.get_features()
 
     #build residual
     res = torch.abs(raw - data)
@@ -68,7 +68,7 @@ def make_gif(trainer, datamodule, model):
     rmin, rmax = torch.amin(res, dim=(0,1))+1e-8, torch.amax(res, dim=(0,1))
 
     #get plotting function
-    plot_func = get_plot_func(datamodule.predict.p)
+    plot_func = get_plot_func(datamodule.predict.get_points())
 
     if plot_func == None:
         return

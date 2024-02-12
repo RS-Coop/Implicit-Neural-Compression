@@ -27,18 +27,18 @@ class MeshDataset(Dataset):
 
         try:
             #Points
-            self.p = torch.from_numpy(np.load(points_path).astype(np.float32))
+            self.points = torch.from_numpy(np.load(points_path).astype(np.float32))
 
             #Features
-            f = torch.from_numpy(np.load(features_path).astype(np.float32))
+            features = torch.from_numpy(np.load(features_path).astype(np.float32))
 
-            assert f.dim() == 3, f"Features has {f.dim()} dimensions, but should only have 3"
+            assert features.dim() == 3, f"Features has {features.dim()} dimensions, but should only have 3"
 
             #move to channels last
             if channels_last == False:
-                f = torch.movedim(f, 1, 2)
+                features = torch.movedim(features, 1, 2)
 
-            f = f[:,:,channels]
+            features = features[:,:,channels]
 
         except FileNotFoundError:
             raise Exception(f'Error loading points {points_path} and/or features {features_path}')
@@ -47,23 +47,30 @@ class MeshDataset(Dataset):
             raise e
         
         if normalize:
-            mean = torch.mean(f, dim=(0,1))
-            stdv = torch.sqrt(torch.var(f, dim=(0,1)))
+            #normalize points
+            mx, mi = torch.aminmax(self.points)
+            self.points = 2*(self.points-mi)/(mx-mi)-1
 
-            f = (f-mean)/stdv
+            self.denorm_p = lambda p: ((p+1)/2)*(mx-mi).to(p.device) + mi.to(p.device)
 
-            max = torch.amax(torch.abs(f), dim=(0,1))
+            #normalize features
+            mean = torch.mean(features, dim=(0,1))
+            stdv = torch.sqrt(torch.var(features, dim=(0,1)))
 
-            f = f/max
+            features = (features-mean)/stdv
 
-            self.denormalize = lambda f_: stdv.to(f_.device)*f_*max.to(f_.device) + mean.to(f_.device)
+            max = torch.amax(torch.abs(features), dim=(0,1))
+
+            features = features/max
+
+            self.denorm_f = lambda f: stdv.to(f.device)*f*max.to(f.device) + mean.to(f.device)
 
             print("\nUsing clipped z-score normalization")
 
-        self.f = f
+        self.features = features
 
-        self.num_points = self.p.shape[0]
-        self.num_snapshots = self.f.shape[0]
+        self.num_points = self.points.shape[0]
+        self.num_snapshots = self.features.shape[0]
 
         return
 
@@ -75,16 +82,25 @@ class MeshDataset(Dataset):
         t = idx//self.num_points
 
         #normalized time
-        t_coord = torch.tensor(t/self.num_snapshots).unsqueeze(0)
+        t_coord = torch.tensor(2*(t/(self.num_snapshots-1))-1).unsqueeze(0)
 
-        return torch.cat((self.p[i,:],t_coord)), self.f[t,i,:]
+        return torch.cat((self.points[i,:],t_coord)), self.features[t,i,:]
     
-    def getall(self, denormalize=True):
+    def get_points(self, denormalize=True):
 
         if denormalize:
-            features = self.denormalize(self.f)
+            points = self.denorm_p(self.points)
         else:
-            features = self.f 
+            points = self.points
+
+        return points
+    
+    def get_features(self, denormalize=True):
+
+        if denormalize:
+            features = self.denorm_f(self.features)
+        else:
+            features = self.features 
 
         return features
 
