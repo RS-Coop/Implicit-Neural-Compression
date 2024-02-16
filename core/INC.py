@@ -62,11 +62,12 @@ class Model(LightningModule):
             raise Exception(f'Invalid inr_type {inr_type}')
         
         #Build skip connection
-        self.skip = nn.Sequential(nn.Linear(2+2*output_shape[1], 10),
+        self.skip = nn.Sequential(nn.Linear(2, 10),
                                     nn.ReLU(),
                                     nn.Linear(10,10),
                                     nn.ReLU(),
-                                    nn.Linear(10, output_shape[1]))
+                                    nn.Linear(10, 2*output_shape[1]),
+                                    nn.Unflatten(1,(2,output_shape[1])))
 
         #Metrics
         self.error = R3Error(num_channels=output_shape[1])
@@ -84,7 +85,11 @@ class Model(LightningModule):
     [Optional] A forward eavaluation of the network.
     '''
     def forward(self, args):
-        return self.output_activation(self.inr(args)+self.skip(args[:,3:]))
+        correction = self.inr(args)
+        phi = self.skip(args[:,3:5])
+        interpolation = torch.sum(phi*args[:,5:].reshape(phi.shape), dim=1)
+
+        return self.output_activation(correction+interpolation)
 
     '''
     A single training step on the given batch.
