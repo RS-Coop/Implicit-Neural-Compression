@@ -62,7 +62,7 @@ class Model(LightningModule):
             raise Exception(f'Invalid inr_type {inr_type}')
         
         #Build skip connection
-        self.skip = nn.Sequential(nn.Linear(2, 10),
+        self.skip = nn.Sequential(nn.Linear(3, 10),
                                     nn.ReLU(),
                                     nn.Linear(10,10),
                                     nn.ReLU(),
