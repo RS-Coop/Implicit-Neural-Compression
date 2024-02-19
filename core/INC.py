@@ -86,7 +86,7 @@ class Model(LightningModule):
     '''
     def forward(self, args):
         correction = self.inr(args)
-        phi = self.skip(args[:,3:5])
+        phi = self.skip(args[:,2:5])
         interpolation = torch.sum(phi*args[:,5:].reshape(phi.shape), dim=1)
 
         return self.output_activation(correction+interpolation)
