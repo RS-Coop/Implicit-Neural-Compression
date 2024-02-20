@@ -22,7 +22,7 @@ train:
 
 #Model arguments
 model:
-  # ckpt_path: #str, only use this if you want to continue training model from checkpoint
+  ckpt_path: "lightning_logs/channel_flow/siren/v1/checkpoints/best-epoch=9.ckpt" #str, only use this if you want to continue training model from checkpoint
   inr_type: "siren"
   hidden_features: 256
   hidden_layers: 5

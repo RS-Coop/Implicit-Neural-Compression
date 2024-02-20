@@ -9,10 +9,10 @@ import torch
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 
-# from core.model import Model
-# from core.data import DataModule
-from core.INC import Model
-from core.data_2 import DataModule
+from core.model import Model
+from core.data import DataModule
+# from core.INC import Model
+# from core.data_2 import DataModule
 from .utils import Logger
 
 def train(config_path, config):

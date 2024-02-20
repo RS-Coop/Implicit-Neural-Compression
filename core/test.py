@@ -10,10 +10,10 @@ from pytorch_lightning import Trainer
 from .gif import make_gif
 from torch_compression.analysis.misc import compute_stats
 
-# from core.model import Model
-# from core.data import DataModule
-from core.INC import Model
-from core.data_2 import DataModule
+from core.model import Model
+from core.data import DataModule
+# from core.INC import Model
+# from core.data_2 import DataModule
 from .utils import Logger
 
 def test(log_dir, config):
