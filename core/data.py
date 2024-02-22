@@ -86,16 +86,16 @@ class MeshDataset(Dataset):
 
         return torch.cat((self.points[i,:],t_coord)), self.features[t,i,:]
     
-    def __getitems__(self, idxs):
-        idxs = torch.tensor(idxs)
+    # def __getitems__(self, idxs):
+    #     idxs = torch.tensor(idxs)
 
-        i = idxs%self.num_points
-        t = idxs//self.num_points
+    #     i = idxs%self.num_points
+    #     t = idxs//self.num_points
 
-        #normalized time
-        t_coord = (2*(t/(self.num_snapshots-1))-1).unsqueeze(1)
+    #     #normalized time
+    #     t_coord = (2*(t/(self.num_snapshots-1))-1).unsqueeze(1)
 
-        return torch.cat((self.points[i,:],t_coord), dim=1), self.features.view(len(self),-1)[idxs,:]
+    #     return torch.cat((self.points[i,:],t_coord), dim=1), self.features.view(len(self),-1)[idxs,:]
     
     def get_points(self, denormalize=True):
 
@@ -204,8 +204,7 @@ class DataModule(LightningDataModule):
                             shuffle=self.shuffle,
                             num_workers=self.num_workers*self.trainer.num_devices,
                             persistent_workers=self.persistent_workers,
-                            pin_memory=self.pin_memory,
-                            collate_fn=lambda x: x)
+                            pin_memory=self.pin_memory)
 
     '''
     Used in Trainer.fit
@@ -215,8 +214,7 @@ class DataModule(LightningDataModule):
                             batch_size=self.batch_size,
                             num_workers=self.num_workers*self.trainer.num_devices,
                             persistent_workers=self.persistent_workers,
-                            pin_memory=self.pin_memory,
-                            collate_fn=lambda x: x)
+                            pin_memory=self.pin_memory)
     '''
     [Optional] Used in Trainer.test
     '''
@@ -225,8 +223,7 @@ class DataModule(LightningDataModule):
                             batch_size=self.test.num_points,
                             num_workers=self.num_workers*self.trainer.num_devices,
                             persistent_workers=self.persistent_workers,
-                            pin_memory=self.pin_memory,
-                            collate_fn=lambda x: x)
+                            pin_memory=self.pin_memory)
     '''
     [Optional] Used in Trainer.predict
     '''
@@ -235,8 +232,7 @@ class DataModule(LightningDataModule):
                             batch_size=self.predict.num_points,
                             num_workers=self.num_workers*self.trainer.num_devices,
                             persistent_workers=self.persistent_workers,
-                            pin_memory=self.pin_memory,
-                            collate_fn=lambda x: x)
+                            pin_memory=self.pin_memory)
     '''
     [Optional] Clean up data
     '''

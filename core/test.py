@@ -4,11 +4,11 @@ Tests a model.
 
 from pathlib import Path
 
+import numpy as np
 import torch
 from pytorch_lightning import Trainer
 
 from .gif import make_gif
-from torch_compression.analysis.misc import compute_stats
 
 from core.model import Model
 from core.data import DataModule
@@ -64,6 +64,14 @@ def test(log_dir, config):
 
         with torch.inference_mode():
             trainer.test(model=model, datamodule=datamodule)
+
+    if misc_args.get('export_txt'):
+        with torch.inference_mode():
+            data = trainer.predict(model=model, datamodule=datamodule)
+
+        data = torch.cat(data)
+        
+        np.savetxt(f'{trainer.logger.log_dir}/reconstruction.txt', data.numpy())
 
     return
 
