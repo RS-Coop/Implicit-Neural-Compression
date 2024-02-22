@@ -9,23 +9,23 @@ train:
   # num_nodes: #int
   # strategy: #str
   # precision: #str
-  enable_checkpointing: True #bool
+  enable_checkpointing: False #bool
   check_val_every_n_epoch: 1 #int
   default_root_dir: "./lightning_logs" #str
-  logger: True #bool
+  logger: False #bool
   log_every_n_steps: 1 #int
   enable_progress_bar: True #bool
   # profiler: #str
   limit_val_batches: 0 #bool
-  max_epochs: 10 #int
-  # max_steps: #int
+  max_epochs: 0 #int
+  max_steps: 1 #int
 
 #Model arguments
 model:
   # ckpt_path: #str, only use this if you want to continue training model from checkpoint
   inr_type: "siren"
-  hidden_features: 256
-  hidden_layers: 3
+  hidden_features: 500
+  hidden_layers: 9
   learning_rate: 0.0001 #float
   scheduler: False
 
@@ -34,7 +34,7 @@ data:
   spatial_dim: 3 #int
   points_path: "points.npy" #str
   features_path: "features_easy.npy" #str
-  batch_size: 233886 #int
+  batch_size: 116943 #int
   channels: [0] #list[int]
   normalize: True #bool
   split: 1 #float [0,1]
