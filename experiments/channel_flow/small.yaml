@@ -4,21 +4,21 @@
 #Documentation: https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
 #Comment out options you aren't using
 train:
-  accelerator: "cpu" #str e.g. "gpu"
+  accelerator: "gpu" #str e.g. "gpu"
   devices: "auto" #int
   # num_nodes: #int
   # strategy: #str
   # precision: #str
-  enable_checkpointing: False #bool
+  enable_checkpointing: True #bool
   check_val_every_n_epoch: 1 #int
   default_root_dir: "./lightning_logs" #str
-  logger: False #bool
+  logger: True #bool
   log_every_n_steps: 1 #int
   enable_progress_bar: False #bool
   # profiler: #str
   # limit_val_batches: 0 #bool
-  # max_epochs: #int
-  max_steps: 1 #int
+  max_epochs: 10000 #int
+  # max_steps: #int
 
 #Model arguments
 model:
@@ -38,10 +38,11 @@ data:
   channels: [0] #list[int]
   normalize: "z-score" #bool
   split: 0.92 #float [0,1]
-  shuffle: False #bool
+  shuffle: True #bool
 
 #Miscellaneous arguments
 misc:
   early_stopping: False #bool
-  make_gif: True #bool
+  make_gif: False #bool
   compute_stats: True #bool
+  export_txt: True

@@ -48,7 +48,7 @@ class MeshDataset(Dataset):
         
         if normalize != False:
             #normalize points
-            mx, mi = torch.aminmax(self.points)
+            mx, mi = torch.aminmax(self.points, dim=0)
             self.points = 2*(self.points-mi)/(mx-mi)-1
 
             self.denorm_p = lambda p: ((p+1)/2)*(mx-mi).to(p.device) + mi.to(p.device)
