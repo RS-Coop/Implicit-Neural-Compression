@@ -46,7 +46,7 @@ class MeshDataset(Dataset):
         except Exception as e:
             raise e
         
-        if normalize:
+        if normalize != False:
             #normalize points
             mx, mi = torch.aminmax(self.points)
             self.points = 2*(self.points-mi)/(mx-mi)-1
@@ -54,18 +54,31 @@ class MeshDataset(Dataset):
             self.denorm_p = lambda p: ((p+1)/2)*(mx-mi).to(p.device) + mi.to(p.device)
 
             #normalize features
-            mean = torch.mean(features, dim=(0,1))
-            stdv = torch.sqrt(torch.var(features, dim=(0,1)))
+            if normalize == "z-score":
+                mean = torch.mean(features, dim=(0,1))
+                stdv = torch.sqrt(torch.var(features, dim=(0,1)))
 
-            features = (features-mean)/stdv
+                features = (features-mean)/stdv
 
-            max = torch.amax(torch.abs(features), dim=(0,1))
+                max = torch.amax(torch.abs(features), dim=(0,1))
 
-            features = features/max
+                features = features/max
 
-            self.denorm_f = lambda f: stdv.to(f.device)*f*max.to(f.device) + mean.to(f.device)
+                self.denorm_f = lambda f: stdv.to(f.device)*f*max.to(f.device) + mean.to(f.device)
 
-            print("\nUsing clipped z-score normalization")
+                print("\nUsing clipped z-score normalization")
+
+            elif normalize == "0-1":
+                mi_f, mx_f = torch.amin(features, dim=(0,1)), torch.amax(features, dim=(0,1))
+                features = (features-mi_f)/(mx_f-mi_f)
+
+                self.denorm_f = lambda f: (mx_f-mi_f).to(f.device)*f + mi_f.to(f.device)
+
+                print("\nUsing 0-1 normalization")
+
+            else:
+                raise Exception(f"Normalization type {normalize} is not valid.")
+
 
         self.features = features
 
@@ -83,7 +96,6 @@ class MeshDataset(Dataset):
 
         #normalized time
         t_coord = torch.tensor(2*(t/(self.num_snapshots-1))-1).unsqueeze(0)
-        # t_coord = torch.tensor(0).unsqueeze(0)
 
         return torch.cat((self.points[i,:],t_coord)), self.features[t,i,:]
     

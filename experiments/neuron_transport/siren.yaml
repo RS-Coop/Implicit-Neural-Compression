@@ -24,6 +24,7 @@ train:
 model:
   # ckpt_path: #str, only use this if you want to continue training model from checkpoint
   inr_type: "siren"
+  output_activation: "Sigmoid"
   hidden_features: 500
   hidden_layers: 9
   learning_rate: 0.0001 #float
@@ -36,7 +37,7 @@ data:
   features_path: "features.npy" #str
   batch_size: 212836 #int
   channels: [0] #list[int]
-  normalize: True #bool
+  normalize: "0-1" #bool
   split: 0.91 #float [0,1]
   shuffle: True #bool
 

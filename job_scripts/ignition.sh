@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --time=06:00:00
-#SBATCH --qos=preemptable
 #SBATCH --job-name=ignition
+#SBATCH --qos=preemptable
 #SBATCH --gres=gpu:a100:1
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1

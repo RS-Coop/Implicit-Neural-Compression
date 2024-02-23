@@ -1,5 +1,6 @@
 #!/bin/bash
 #SBATCH --time=15:45:00
+#SBATCH --job-name=flat_plate_2d
 #SBATCH --qos=preemptable
 #SBATCH --job-name=ignition
 #SBATCH --gres=gpu:a100:1

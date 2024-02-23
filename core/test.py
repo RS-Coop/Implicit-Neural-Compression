@@ -69,9 +69,9 @@ def test(log_dir, config):
         with torch.inference_mode():
             data = trainer.predict(model=model, datamodule=datamodule)
 
-        data = torch.cat(data)
+        data = datamodule.test.denorm_f(torch.cat(data))
         
-        np.savetxt(f'{trainer.logger.log_dir}/reconstruction.txt', data.numpy())
+        np.save(f'{trainer.logger.log_dir}/reconstruction.npy', data.numpy())
 
     return
 

@@ -36,7 +36,7 @@ data:
   features_path: "features.npy" #str
   batch_size: 252655 #9060 #int
   channels: [0,1,2] #list[int]
-  normalize: True #bool
+  normalize: "z-score" #bool
   split: 0.92 #float [0,1]
   shuffle: True #bool
 
