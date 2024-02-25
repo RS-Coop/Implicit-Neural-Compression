@@ -32,9 +32,9 @@ model:
 #PT LightningDataModule arguments
 data:
   spatial_dim: 3 #int
-  points_path: "points.npy" #str
-  features_path: "features.npy" #str
-  batch_size: 252655 #9060 #int
+  points_path: "points_64.npy" #str
+  features_path: "features_64_1000.npy" #str
+  batch_size: 241172 #9060 #int
   channels: [0,1,2] #list[int]
   normalize: "z-score" #bool
   split: 0.92 #float [0,1]
@@ -45,3 +45,4 @@ misc:
   early_stopping: False #bool
   make_gif: False #bool
   compute_stats: True #bool
+  export_txt: True

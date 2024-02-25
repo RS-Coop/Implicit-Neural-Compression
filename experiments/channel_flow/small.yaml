@@ -24,7 +24,7 @@ train:
 model:
   # ckpt_path: #str, only use this if you want to continue training model from checkpoint
   inr_type: "siren"
-  hidden_features: 256
+  hidden_features: 128
   hidden_layers: 5
   learning_rate: 0.0001 #float
   scheduler: True
@@ -32,8 +32,8 @@ model:
 #PT LightningDataModule arguments
 data:
   spatial_dim: 3 #int
-  points_path: "points_2.npy" #str
-  features_path: "features_2.npy" #str
+  points_path: "points_64.npy" #str
+  features_path: "features_64_500.npy" #str
   batch_size: 241172 #int
   channels: [0] #list[int]
   normalize: "z-score" #bool
