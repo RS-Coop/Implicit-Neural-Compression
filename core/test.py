@@ -50,12 +50,6 @@ def test(log_dir, config):
     trainer = Trainer(**trainer_args, inference_mode=True)
 
     #compute testing statistics
-    trainer.test(model=model, datamodule=datamodule)
-
-    #make GIF
-    if misc_args.get('make_gif'):
-        make_gif(trainer, datamodule, model)
-
     if misc_args.get('compute_stats'):
         #run on test
         datamodule.setup('test')
@@ -64,6 +58,10 @@ def test(log_dir, config):
 
         with torch.inference_mode():
             trainer.test(model=model, datamodule=datamodule)
+
+    #make GIF
+    if misc_args.get('make_gif'):
+        make_gif(trainer, datamodule, model)
 
     if misc_args.get('export_txt'):
         with torch.inference_mode():

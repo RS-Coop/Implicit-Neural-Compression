@@ -71,6 +71,9 @@ class Model(LightningModule):
         #manual optimization
         # self.automatic_optimization = False
 
+        #exact parameter count
+        print(f"Exact parameter count: {sum(p.numel() for p in self.parameters())}")
+
         return
 
     '''
@@ -139,6 +142,7 @@ class Model(LightningModule):
         max_err = self.error.max
 
         self.log(self.prefix+'test_avg_err', torch.mean(err), on_step=False, on_epoch=True)
+        self.log(self.prefix+'test_avg_max_err', torch.mean(max_err), on_step=False, on_epoch=True)
 
         #log other test metrics
         metric_dict = self.test_metrics.compute()
