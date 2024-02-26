@@ -141,7 +141,7 @@ class Model(LightningModule):
         self.log(self.prefix+'test_avg_err', torch.mean(err), on_step=False, on_epoch=True)
 
         #log other test metrics
-        metric_dict = self.test_metrics.compute(reduce_channels=False)
+        metric_dict = self.test_metrics.compute()
         
         for key, value in metric_dict.items():
             self.log(self.prefix+'test_avg_'+key, torch.mean(value), on_step=False, on_epoch=True)

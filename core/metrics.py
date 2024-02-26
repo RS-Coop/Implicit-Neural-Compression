@@ -91,7 +91,7 @@ class RPWError(Metric):
         self.max = torch.maximum(torch.amax(err, dim=0), self.max)
         self.num_samples += err.shape[0]
 
-    def compute(self, reduce_channels=True):
+    def compute(self, reduce_channels=False):
         err = self.error/self.num_samples
 
         if reduce_channels: err = torch.mean(err)
@@ -124,7 +124,7 @@ class RFError(Metric):
         self.N += torch.sum((preds-targets)**2, dim=0)
         self.D += torch.sum((targets)**2, dim=0)
 
-    def compute(self, reduce_channels=True):
+    def compute(self, reduce_channels=False):
         err = torch.sqrt(self.N/self.D)
 
         if reduce_channels: err = torch.mean(err)
@@ -182,7 +182,7 @@ class PSNR(Metric):
         self.psnr += psnr(preds, targets)
         self.num_samples += 1
 
-    def compute(self, reduce_channels=True):
+    def compute(self, reduce_channels=False):
         psnr = self.psnr/self.num_samples
 
         if reduce_channels: psnr = torch.mean(psnr)
