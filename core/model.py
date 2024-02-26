@@ -151,12 +151,13 @@ class Model(LightningModule):
             self.log(self.prefix+'test_avg_'+key, torch.mean(value), on_step=False, on_epoch=True)
 
         #per channel error
-        for i in range(err.ndim):
-            self.log(self.prefix+f"c_{i}_err", err[i], on_step=False, on_epoch=True)
-            self.log(self.prefix+f"c_{i}_max", max_err[i], on_step=False, on_epoch=True)
+        if err.ndim != 0:
+            for i in range(err.shape[0]):
+                self.log(self.prefix+f"c_{i}_err", err[i], on_step=False, on_epoch=True)
+                self.log(self.prefix+f"c_{i}_max", max_err[i], on_step=False, on_epoch=True)
 
-            for key, value in metric_dict.items():
-                self.log(self.prefix+f'test_c_{i}_'+key, value[i], on_step=False, on_epoch=True)
+                for key, value in metric_dict.items():
+                    self.log(self.prefix+f'test_c_{i}_'+key, value[i], on_step=False, on_epoch=True)
 
         #reset metrics
         self.error.reset()
