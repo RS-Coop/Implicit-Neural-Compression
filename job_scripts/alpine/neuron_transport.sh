@@ -19,7 +19,8 @@ TIME=00:20:00:00
 PYTHON=/projects/cosi1728/software/anaconda/envs/compression/bin/python
 
 DATA_DIR=data/neuron_transport
-cp -r $DATA_DIR/* $SLURM_SCRATCH
+cp -r $DATA_DIR/points.npy $SLURM_SCRATCH
+cp -r $DATA_DIR/features.npy $SLURM_SCRATCH
 
 module purge
 module load anaconda
