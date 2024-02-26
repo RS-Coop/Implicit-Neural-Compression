@@ -54,6 +54,82 @@ class R3Error(Metric):
         if reduce_channels: err = torch.mean(err)
 
         return err
+    
+################################################################################
+
+'''
+Relative point-wise reconstruction error.
+
+Input:
+    preds, target: tensors of shape (B, C)
+'''
+def rpwerror(preds, targets):
+    assert preds.shape == targets.shape, f"{preds.shape} does not equal {targets.shape}"
+
+    error = (preds-targets)**2/(targets**2+1e-15)
+
+    return error
+
+class RPWError(Metric):
+    
+    #metric attributes
+    is_differentiable = True
+    higher_is_better = False
+    full_state_update = False
+
+    def __init__(self, num_channels):
+        super().__init__()
+        self.add_state("error", default=torch.zeros(num_channels), dist_reduce_fx="sum")
+        self.add_state("max", default=torch.zeros(num_channels), dist_reduce_fx="max")
+        self.add_state("num_samples", default=torch.tensor(0), dist_reduce_fx="sum")
+
+    def update(self, preds: torch.Tensor, targets: torch.Tensor):
+        
+        err = rpwerror(preds, targets)
+
+        self.error += torch.sum(err, dim=0)
+        self.max = torch.maximum(torch.amax(err, dim=0), self.max)
+        self.num_samples += err.shape[0]
+
+    def compute(self, reduce_channels=True):
+        err = self.error/self.num_samples
+
+        if reduce_channels: err = torch.mean(err)
+
+        return err
+    
+################################################################################
+
+'''
+Relative Frobenius reconstruction error.
+'''
+class RFError(Metric):
+    
+    #metric attributes
+    is_differentiable = True
+    higher_is_better = False
+    full_state_update = False
+
+    def __init__(self, num_channels):
+        super().__init__()
+        self.add_state("N", default=torch.zeros(num_channels), dist_reduce_fx="sum")
+        self.add_state("D", default=torch.zeros(num_channels), dist_reduce_fx="sum")
+
+    '''
+    Input:
+        preds, targets: tensors of shape (B, C)
+    '''
+    def update(self, preds: torch.Tensor, targets: torch.Tensor):
+        
+        self.N += torch.sum((preds-targets)**2, dim=0)
+        self.D += torch.sum((targets)**2, dim=0)
+
+    def compute(self, reduce_channels=True):
+        err = torch.sqrt(self.N/self.D)
+
+        if reduce_channels: err = torch.mean(err)
+
+        return err
 
 ################################################################################
 
@@ -87,7 +163,7 @@ def psnr(preds, targets):
     r = torch.amax(targets, dim=(0))
     mse = torch.mean((preds-targets)**2, dim=(0))
 
-    return torch.mean(10*torch.log10(r**2/mse))
+    return torch.mean(10*torch.log10(r**2/mse), dim=0)
 
 class PSNR(Metric):
 
@@ -96,9 +172,9 @@ class PSNR(Metric):
     higher_is_better = True
     full_state_update = False
 
-    def __init__(self):
+    def __init__(self, num_channels):
         super().__init__()
-        self.add_state("psnr", default=torch.tensor(0.0), dist_reduce_fx="sum")
+        self.add_state("psnr", default=torch.zeros(num_channels), dist_reduce_fx="sum")
         self.add_state("num_samples", default=torch.tensor(0), dist_reduce_fx="sum")
 
     def update(self, preds: torch.Tensor, targets: torch.Tensor):
@@ -106,5 +182,9 @@ class PSNR(Metric):
         self.psnr += psnr(preds, targets)
         self.num_samples += 1
 
-    def compute(self):
-        return self.psnr/self.num_samples
+    def compute(self, reduce_channels=True):
+        psnr = self.psnr/self.num_samples
+
+        if reduce_channels: psnr = torch.mean(psnr)
+
+        return psnr

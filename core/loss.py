@@ -4,7 +4,7 @@
 
 import torch
 import torch.nn as nn
-from .metrics import r3error
+from .metrics import r3error, rpwerror
 from .diff_ops import jacobian
 
 '''
@@ -19,6 +19,19 @@ class R3Loss(nn.Module):
 
     def forward(self, preds, target):
         return torch.mean(r3error(preds, target))
+    
+'''
+Point-wise relative reconstruction loss
+'''
+class RPWLoss(nn.Module):
+
+    def __init__(self, reduction="mean"):
+        super().__init__()
+
+        self.reduction = reduction
+
+    def forward(self, preds, target):
+        return torch.mean(rpwerror(preds, target))
 
 '''
 Order 2 Sobolev loss
