@@ -66,7 +66,7 @@ Input:
 def rpwerror(preds, targets):
     assert preds.shape == targets.shape, f"{preds.shape} does not equal {targets.shape}"
 
-    error = (preds-targets)**2/(targets**2+1e-15)
+    error = (preds-targets)**2/(targets**2+1e-8)
 
     return error
 
