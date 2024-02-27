@@ -163,7 +163,7 @@ def psnr(preds, targets):
     r = torch.amax(targets, dim=(0))
     mse = torch.mean((preds-targets)**2, dim=(0))
 
-    return torch.mean(10*torch.log10(r**2/mse), dim=0)
+    return 10*torch.log10(r**2/mse)
 
 class PSNR(Metric):
 

@@ -13,7 +13,7 @@ import torchmetrics as tm
 from .metrics import R3Error, RPWError, RFError, PSNR
 from .siren import Siren
 from .wire import Wire
-from .loss import R3Loss
+from .loss import R3Loss, RPWLoss
 
 '''
 '''
@@ -49,7 +49,8 @@ class Model(LightningModule):
 
         #Loss function
         # self.loss_fn = getattr(nn, loss_fn)()
-        self.loss_fn = R3Loss()
+        # self.loss_fn = R3Loss()
+        self.loss_fn = RPWLoss()
 
         #Build INR network
         self.output_activation = getattr(nn, output_activation)()

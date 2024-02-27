@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --time=24:00:00
+#SBATCH --time=05:00:00
 #SBATCH --job-name=neuron_transport
 #SBATCH --qos=normal
 #SBATCH --partition=aa100
@@ -15,7 +15,7 @@
 #cpus-per-task per node should be num_workers per gpu
 
 TEST=neuron_transport/siren
-TIME=00:20:00:00
+TIME=00:04:00:00
 PYTHON=/projects/cosi1728/software/anaconda/envs/compression/bin/python
 
 DATA_DIR=data/neuron_transport
