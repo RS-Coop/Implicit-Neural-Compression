@@ -76,8 +76,20 @@ class MeshDataset(Dataset):
 
                 print("\nUsing 0-1 normalization")
 
+            elif normalize == "-1-1":
+                mi_f, mx_f = torch.amin(features, dim=(0,1)), torch.amax(features, dim=(0,1))
+                features = 2*(features-mi_f)/(mx_f-mi_f)-1
+
+                self.denorm_f = lambda f: (mx_f-mi_f).to(f.device)*((f+1)/2) + mi_f.to(f.device)
+
+                print("\nUsing -1-1 normalization")
+
             else:
                 raise Exception(f"Normalization type {normalize} is not valid.")
+            
+        else:
+            self.denorm_p = lambda p: p
+            self.denorm_f = lambda f: f
 
 
         self.features = features
@@ -95,7 +107,8 @@ class MeshDataset(Dataset):
         t = idx//self.num_points
 
         #normalized time
-        t_coord = torch.tensor(2*(t/(self.num_snapshots-1))-1).unsqueeze(0)
+        # t_coord = torch.tensor(2*(t/(self.num_snapshots-1))-1).unsqueeze(0)
+        t_coord = torch.tensor(0.).unsqueeze(0)
 
         return torch.cat((self.points[i,:],t_coord)), self.features[t,i,:]
     

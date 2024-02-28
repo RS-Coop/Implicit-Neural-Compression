@@ -48,9 +48,12 @@ class Model(LightningModule):
         self.example_input_array = torch.zeros(input_shape)
 
         #Loss function
-        # self.loss_fn = getattr(nn, loss_fn)()
-        # self.loss_fn = R3Loss()
-        self.loss_fn = RPWLoss()
+        if loss_fn == "R3Loss":
+            self.loss_fn = R3Loss()
+        elif loss_fn == "RPWLoss":
+            self.loss_fn = RPWLoss()
+        else:
+            self.loss_fn = getattr(nn, loss_fn)()
 
         #Build INR network
         self.output_activation = getattr(nn, output_activation)()
@@ -63,8 +66,9 @@ class Model(LightningModule):
             raise Exception(f'Invalid inr_type {inr_type}')
 
         #Metrics
-        self.error = RPWError(num_channels=output_shape[1])
-        self.test_metrics = tm.MetricCollection([RFError(num_channels=output_shape[1]), PSNR(num_channels=output_shape[1])])
+        self.error = R3Error(num_channels=output_shape[1])
+            
+        self.test_metrics = tm.MetricCollection([RPWError(num_channels=output_shape[1]), RFError(num_channels=output_shape[1]), PSNR(num_channels=output_shape[1])])
 
         self.prefix = ''
         self.denormalize = None

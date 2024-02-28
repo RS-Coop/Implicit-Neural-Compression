@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --time=05:00:00
+#SBATCH --time=04:00:00
 #SBATCH --job-name=neuron_transport
 #SBATCH --qos=normal
 #SBATCH --partition=aa100
@@ -15,7 +15,7 @@
 #cpus-per-task per node should be num_workers per gpu
 
 TEST=neuron_transport/siren
-TIME=00:04:00:00
+TIME=00:03:00:00
 PYTHON=/projects/cosi1728/software/anaconda/envs/compression/bin/python
 
 DATA_DIR=data/neuron_transport
@@ -28,4 +28,4 @@ module load anaconda
 conda activate compression
 
 srun $PYTHON run.py --mode train --config $TEST --max_time $TIME --data_dir $SLURM_SCRATCH
-srun $PYTHON run.py --mode test --config $TEST/version_0 --data_dir $SLURM_SCRATCH
+#srun $PYTHON run.py --mode test --config $TEST/version_0 --data_dir $SLURM_SCRATCH
