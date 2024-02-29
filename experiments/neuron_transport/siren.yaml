@@ -27,7 +27,7 @@ model:
   output_activation: "Tanh"
   hidden_features: 256
   hidden_layers: 5
-  loss_fn: "R3Loss"
+  loss_fn: "RPWLoss"
   learning_rate: 0.0001 #float
   scheduler: True
 
@@ -38,7 +38,7 @@ data:
   features_path: "features.npy" #str
   batch_size: 212836 #int
   channels: [0] #list[int]
-  normalize: "z-score" #bool
+  normalize: "-1-1" #bool
   split: 0.91 #float [0,1]
   shuffle: True #bool
 
