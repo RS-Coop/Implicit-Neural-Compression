@@ -46,14 +46,15 @@ class MeshDataset(Dataset):
         except Exception as e:
             raise e
         
+        #normalize points
+        mx, mi = torch.aminmax(self.points, dim=0)
+        self.points = 2*(self.points-mi)/(mx-mi)-1
+
+        self.denorm_p = lambda p: ((p+1)/2)*(mx-mi).to(p.device) + mi.to(p.device)
+        
+        #normalize features
         if normalize != False:
-            #normalize points
-            mx, mi = torch.aminmax(self.points, dim=0)
-            self.points = 2*(self.points-mi)/(mx-mi)-1
 
-            self.denorm_p = lambda p: ((p+1)/2)*(mx-mi).to(p.device) + mi.to(p.device)
-
-            #normalize features
             if normalize == "z-score":
                 mean = torch.mean(features, dim=(0,1))
                 stdv = torch.sqrt(torch.var(features, dim=(0,1)))
@@ -88,9 +89,7 @@ class MeshDataset(Dataset):
                 raise Exception(f"Normalization type {normalize} is not valid.")
             
         else:
-            self.denorm_p = lambda p: p
             self.denorm_f = lambda f: f
-
 
         self.features = features
 

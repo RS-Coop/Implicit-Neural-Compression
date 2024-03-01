@@ -113,14 +113,14 @@ class Wire(nn.Module):
         super().__init__()
         
         # All results in the paper were with the default complex 'gabor' nonlinearity
-        self.nonlin = ComplexGaborLayer
-        # self.nonlin = RealGaborLayer
+        # self.nonlin = ComplexGaborLayer
+        self.nonlin = RealGaborLayer
         
         # Since complex numbers are two real numbers, reduce the number of 
         # hidden parameters by 2
         # hidden_features = int(hidden_features/np.sqrt(2))
-        dtype = torch.cfloat
-        # dtype = torch.float
+        # dtype = torch.cfloat
+        dtype = torch.float
         self.complex = True
             
         self.net = nn.Sequential()

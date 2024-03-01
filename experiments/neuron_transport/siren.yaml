@@ -24,10 +24,10 @@ train:
 model:
   # ckpt_path: #str, only use this if you want to continue training model from checkpoint
   inr_type: "siren"
-  output_activation: "Tanh"
+  output_activation: "Identity"
   hidden_features: 256
-  hidden_layers: 5
-  loss_fn: "RPWLoss"
+  hidden_layers: 6
+  loss_fn: "R3Loss"
   learning_rate: 0.0001 #float
   scheduler: True
 
@@ -38,7 +38,7 @@ data:
   features_path: "features.npy" #str
   batch_size: 212836 #int
   channels: [0] #list[int]
-  normalize: "-1-1" #bool
+  normalize: False #bool
   split: 0.91 #float [0,1]
   shuffle: True #bool
 
@@ -46,5 +46,5 @@ data:
 misc:
   early_stopping: False #bool
   make_gif: False #bool
-  compute_stats: True #bool
+  compute_stats: False #bool
   export_txt: True

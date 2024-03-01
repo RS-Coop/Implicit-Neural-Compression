@@ -25,10 +25,11 @@ model:
   # ckpt_path: #str, only use this if you want to continue training model from checkpoint
   inr_type: "siren"
   hidden_features: 128
-  hidden_layers: 10
-  learning_rate: 0.0001 #float
+  hidden_layers: 3
+  loss_fn: "RPWLoss"
+  learning_rate: 0.005 #float
   scheduler: False
-  output_activation: "Tanh"
+  output_activation: "Identity"
 
 #PT LightningDataModule arguments
 data:
@@ -37,7 +38,7 @@ data:
   features_path: "features_easy.npy" #str
   batch_size: 2500 #int
   channels: [1] #list[int]
-  normalize: True #bool
+  normalize: "-1-1" #bool
   split: 1.0 #float [0,1]
   shuffle: True #bool
 
@@ -45,4 +46,4 @@ data:
 misc:
   early_stopping: False #bool
   make_gif: True #bool
-  compute_stats: False #bool
+  compute_stats: True #bool
