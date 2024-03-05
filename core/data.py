@@ -91,6 +91,8 @@ class MeshDataset(Dataset):
         else:
             self.denorm_f = lambda f: f
 
+            print("\nNot normalizing features")
+
         self.features = features
 
         self.num_points = self.points.shape[0]
