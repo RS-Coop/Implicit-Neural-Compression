@@ -13,7 +13,7 @@ from core.model import Model
 from core.data import DataModule
 # from core.INC import Model
 # from core.data_2 import DataModule
-from .utils import Logger
+from .utils import Logger, FineTuner
 
 def train(config_path, config):
 
@@ -61,6 +61,10 @@ def train(config_path, config):
 
         #Add logger to trainer args
         trainer_args['logger'] = logger
+
+    #Fine tuner
+    if misc_args.get('finetune'):
+        callbacks.append(FineTuner())
 
     #Build trainer
     trainer = Trainer(**trainer_args, callbacks=callbacks)

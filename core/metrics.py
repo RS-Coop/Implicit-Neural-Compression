@@ -37,7 +37,7 @@ class R3Error(Metric):
     def __init__(self, num_channels):
         super().__init__()
         self.add_state("error", default=torch.zeros(num_channels), dist_reduce_fx="sum")
-        self.add_state("max", default=torch.tensor(0.0), dist_reduce_fx="max")
+        self.add_state("max", default=torch.zeros(num_channels), dist_reduce_fx="max")
         self.add_state("num_samples", default=torch.tensor(0), dist_reduce_fx="sum")
 
     def update(self, preds: torch.Tensor, targets: torch.Tensor):
@@ -45,10 +45,10 @@ class R3Error(Metric):
         err = r3error(preds, targets)
 
         self.error += err
-        self.max = torch.maximum(torch.mean(err), self.max)
+        self.max = torch.maximum(err, self.max)
         self.num_samples += 1
 
-    def compute(self, reduce_channels=True):
+    def compute(self, reduce_channels=False):
         err = self.error/self.num_samples
 
         if reduce_channels: err = torch.mean(err)

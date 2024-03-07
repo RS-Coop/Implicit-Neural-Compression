@@ -28,4 +28,4 @@ module load anaconda
 conda activate compression
 
 srun $PYTHON run.py --mode train --config $TEST --max_time $TIME --data_dir $SLURM_SCRATCH
-srun $PYTHON run.py --mode test --config $TEST/version_0 --data_dir $SLURM_SCRATCH
+#srun $PYTHON run.py --mode test --config $TEST/version_0 --data_dir $SLURM_SCRATCH

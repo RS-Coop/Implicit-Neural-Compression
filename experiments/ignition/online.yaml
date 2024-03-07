@@ -4,7 +4,7 @@
 #Documentation: https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
 #Comment out options you aren't using
 train:
-  accelerator: "gpu" #str e.g. "gpu"
+  accelerator: "cpu" #str e.g. "gpu"
   devices: "auto" #int
   # num_nodes: #int
   # strategy: #str
@@ -14,10 +14,10 @@ train:
   default_root_dir: "./lightning_logs" #str
   logger: True #bool
   log_every_n_steps: 1 #int
-  enable_progress_bar: False #bool
+  enable_progress_bar: True #bool
   # profiler: #str
   limit_val_batches: 0 #bool
-  max_epochs: 1000 #int
+  max_epochs: 1 #int
   # max_steps: #int
 
 #Model arguments
@@ -34,17 +34,17 @@ model:
 #PT LightningDataModule arguments
 data:
   spatial_dim: 2 #int
-  points_path: "points_ds.npy" #str
-  features_path: "features_ds.npy" #str
-  batch_size: 1990 #9060 #int
-  channels: [1,2,3] #list[int]
+  points_path: "points.npy" #str
+  features_path: "features.npy" #str
+  batch_size: 10000 #int
+  channels: [0,1,2,3] #list[int]
   normalize: False #bool
   split: 1.0 #float [0,1]
-  shuffle: True #bool
+  shuffle: False #bool
 
 #Miscellaneous arguments
 misc:
   early_stopping: False #bool
-  make_gif: True #bool
+  make_gif: False #bool
   compute_stats: True #bool
-  export_txt: False
+  finetune: False

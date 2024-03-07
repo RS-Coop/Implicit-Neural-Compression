@@ -17,7 +17,8 @@ TIME=00:15:00:00
 PYTHON=/projects/cosi1728/software/anaconda/envs/compression/bin/python
 
 DATA_DIR=data/flat_plate_2d_cut
-cp -r $DATA_DIR/* $SLURM_SCRATCH
+cp -r $DATA_DIR/points_p1.npy $SLURM_SCRATCH
+cp -r $DATA_DIR/features_p1.npy $SLURM_SCRATCH
 
 module purge
 module load anaconda

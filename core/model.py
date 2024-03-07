@@ -103,6 +103,20 @@ class Model(LightningModule):
 
         return loss
 
+        # coords, features = batch
+
+        # opt = self.optimizers()
+
+        # def closure():
+        #     loss = self.loss_fn(self(coords), features)
+        #     opt.zero_grad()
+        #     self.log('train_loss', loss, on_step=True, on_epoch=False, sync_dist=True)
+        #     self.manual_backward(loss)
+
+        # for i in range(5): opt.step(closure)
+
+        return
+
     '''
     [Optional] A single validation step.
     '''

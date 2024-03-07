@@ -17,31 +17,33 @@ train:
   enable_progress_bar: True #bool
   # profiler: #str
   limit_val_batches: 0 #bool
-  max_epochs: 10 #int
+  max_epochs: 1 #int
   # max_steps: #int
 
 #Model arguments
 model:
   # ckpt_path: #str, only use this if you want to continue training model from checkpoint
   inr_type: "siren"
+  output_activation: "Identity"
   hidden_features: 128
   hidden_layers: 5
-  learning_rate: 0.00001 #float
+  loss_fn: "R3Loss"
+  learning_rate: 0.0001 #float
   scheduler: False
 
 #PT LightningDataModule arguments
 data:
   spatial_dim: 2 #int
   points_path: "points_p1.npy" #str
-  features_path: "features_10.npy" #str
-  batch_size: 9956 #int
+  features_path: "features_p1.npy" #str
+  batch_size: 29868 #9956 #int
   channels: [1] #list[int]
-  normalize: True #bool
+  normalize: False #bool
   split: 1.0 #float [0,1]
-  shuffle: True #bool
+  shuffle: False #bool
 
 #Miscellaneous arguments
 misc:
   early_stopping: False #bool
-  make_gif: True #bool
+  make_gif: False #bool
   compute_stats: True #bool
