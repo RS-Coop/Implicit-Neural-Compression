@@ -12,6 +12,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader, random_split
 from pytorch_lightning import LightningDataModule
+from .sampler import OnlineSampler, WindowSampler
 
 '''
 '''
@@ -226,7 +227,16 @@ class DataModule(LightningDataModule):
     Used in Trainer.fit
     '''
     def train_dataloader(self):
-        return DataLoader(self.train,
+        if self.batch_size == None and self.shuffle == False:
+            batch_sampler = WindowSampler(self.train.dataset.num_points, self.train.dataset.num_snapshots)
+
+            return DataLoader(self.train,
+                            batch_sampler=batch_sampler,
+                            num_workers=self.num_workers*self.trainer.num_devices,
+                            persistent_workers=self.persistent_workers,
+                            pin_memory=self.pin_memory)
+        else:
+            return DataLoader(self.train,
                             batch_size=self.batch_size,
                             shuffle=self.shuffle,
                             num_workers=self.num_workers*self.trainer.num_devices,

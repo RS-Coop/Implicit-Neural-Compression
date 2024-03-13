@@ -74,7 +74,7 @@ class Model(LightningModule):
         self.denormalize = None
 
         #manual optimization
-        # self.automatic_optimization = False
+        self.automatic_optimization = False
 
         #exact parameter count
         print(f"Exact parameter count: {sum(p.numel() for p in self.parameters())}")
@@ -94,26 +94,26 @@ class Model(LightningModule):
         torch loss
     '''
     def training_step(self, batch, idx):
-        coords, features = batch
-
-        preds = self(coords)
-
-        loss = self.loss_fn(preds, features)
-        self.log('train_loss', loss, on_step=False, on_epoch=True, sync_dist=True)
-
-        return loss
-
         # coords, features = batch
 
-        # opt = self.optimizers()
+        # preds = self(coords)
 
-        # def closure():
-        #     loss = self.loss_fn(self(coords), features)
-        #     opt.zero_grad()
-        #     self.log('train_loss', loss, on_step=True, on_epoch=False, sync_dist=True)
-        #     self.manual_backward(loss)
+        # loss = self.loss_fn(preds, features)
+        # self.log('train_loss', loss, on_step=False, on_epoch=True, sync_dist=True)
 
-        # for i in range(5): opt.step(closure)
+        # return loss
+
+        coords, features = batch
+
+        opt = self.optimizers()
+
+        def closure():
+            loss = self.loss_fn(self(coords), features)
+            opt.zero_grad()
+            self.log('train_loss', loss, on_step=True, on_epoch=False, sync_dist=True)
+            self.manual_backward(loss)
+
+        for i in range(5): opt.step(closure)
 
         return
 
