@@ -22,7 +22,7 @@ train:
 
 #Model arguments
 model:
-  ckpt_path: "lightning_logs/flat_plate_2d/3c/ds_0/checkpoints/best-epoch=999.ckpt" #str, only use this if you want to continue training model from checkpoint
+  ckpt_path: "lightning_logs/flat_plate_2d/3c/ds_4/checkpoints/best-epoch=4494.ckpt" #str, only use this if you want to continue training model from checkpoint
   inr_type: "siren"
   output_activation: "Identity"
   hidden_features: 256

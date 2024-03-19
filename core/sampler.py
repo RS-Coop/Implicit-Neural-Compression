@@ -8,27 +8,26 @@ from collections import deque
 
 class OnlineSampler(Sampler):
 
-    def __init__(self, data_source, buffer_size=4):
-        self.data_source = data_source
+    def __init__(self, N, T, buffer_size=3):
+        self.N = N
+        self.T = T
 
-        self.buffer = deque(buffer_size)
+        self.buffer_size = buffer_size
+        self.buffer = deque(maxlen=buffer_size)
 
     def __iter__(self):
-        N = self.data_source.num_points
-        T = self.data_source.num_snapshots
 
         for i in range(len(self)):
-            if i < T:
-                self.buffer.append(range(i*N,(i+1)*N))
+            if i < self.T:
+                self.buffer.append(i)
             else:
-                self.buffer.pop()
+                self.buffer.popleft()
 
-            yield list(deque)
+            yield range(self.buffer[0]*self.N,(self.buffer[-1]+1)*self.N)
 
     def __len__(self):
-        T = self.data_source.num_snapshots
 
-        return T+self.buffer_size-1
+        return self.T+self.buffer_size-1
     
 class WindowSampler(Sampler):
 

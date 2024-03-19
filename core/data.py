@@ -228,7 +228,7 @@ class DataModule(LightningDataModule):
     '''
     def train_dataloader(self):
         if self.batch_size == None and self.shuffle == False:
-            batch_sampler = WindowSampler(self.train.dataset.num_points, self.train.dataset.num_snapshots)
+            batch_sampler = OnlineSampler(self.train.dataset.num_points, self.train.dataset.num_snapshots)
 
             return DataLoader(self.train,
                             batch_sampler=batch_sampler,
