@@ -48,7 +48,7 @@ class R3Error(Metric):
         self.max = torch.maximum(err, self.max)
         self.num_samples += 1
 
-    def compute(self, reduce_channels=False):
+    def compute(self, reduce_channels=True):
         err = self.error/self.num_samples
 
         if reduce_channels: err = torch.mean(err)
