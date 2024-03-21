@@ -22,7 +22,8 @@ class MeshDataset(Dataset):
             features_path,
             channels,
             channels_last=True,
-            normalize=True
+            normalize=True,
+            gradients=False
         ):
         super().__init__()
 
@@ -40,6 +41,14 @@ class MeshDataset(Dataset):
                 features = torch.movedim(features, 1, 2)
 
             features = features[:,:,channels]
+
+            if gradients:
+                g_path = features_path.with_stem(features_path.stem+"_gradients")
+                self.gradients = torch.from_numpy(np.load(g_path).astype(np.float32))
+
+                #NOTE: Should extract appropriate gradient channels, assert dimensions, and move dimensions
+            else:
+                self.gradients = None
 
         except FileNotFoundError:
             raise Exception(f'Error loading points {points_path} and/or features {features_path}')
@@ -112,7 +121,12 @@ class MeshDataset(Dataset):
         t_coord = torch.tensor(2*(t/(self.num_snapshots-1))-1).unsqueeze(0)
         # t_coord = torch.tensor(0.).unsqueeze(0)
 
-        return torch.cat((self.points[i,:],t_coord)), self.features[t,i,:]
+        if self.gradients != None:
+            features = torch.cat((self.features[t,i,:], self.gradients[t,i,:]))
+        else:
+            features = self.features[t,i,:]
+
+        return torch.cat((self.points[i,:],t_coord)), features
     
     # def __getitems__(self, idxs):
     #     idxs = torch.tensor(idxs)
@@ -158,6 +172,7 @@ class DataModule(LightningDataModule):
             features_path,
             batch_size,
             channels,
+            gradients = False,
             data_dir = "./",
             normalize = True,
             split = 0.8,
@@ -203,7 +218,7 @@ class DataModule(LightningDataModule):
     def setup(self, stage=None):
         if (stage == "fit" or stage is None) and (self.train is None or self.val is None):
             #load dataset
-            train_val = MeshDataset(self.points_path, self.features_path, self.channels, normalize=self.normalize)
+            train_val = MeshDataset(self.points_path, self.features_path, self.channels, normalize=self.normalize, gradients=self.gradients)
 
             train_size = round(self.split*len(train_val))
             val_size = len(train_val) - train_size
@@ -212,11 +227,11 @@ class DataModule(LightningDataModule):
 
         if (stage == "test" or stage is None) and self.test is None:
             #load dataset
-            self.test = MeshDataset(self.points_path, self.features_path, self.channels, normalize=self.normalize)
+            self.test = MeshDataset(self.points_path, self.features_path, self.channels, normalize=self.normalize, gradients=self.gradients)
 
         if (stage == "predict" or stage is None) and self.predict is None:
             #load dataset
-            self.predict = MeshDataset(self.points_path, self.features_path, self.channels, normalize=self.normalize)
+            self.predict = MeshDataset(self.points_path, self.features_path, self.channels, normalize=self.normalize, gradients=self.gradients)
 
         if stage not in ["fit", "test", "predict", None]:
             raise ValueError("Stage must be one of fit, test, predict")

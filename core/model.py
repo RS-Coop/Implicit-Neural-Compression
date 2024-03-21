@@ -13,7 +13,7 @@ import torchmetrics as tm
 from .metrics import R3Error, RPWError, RFError, PSNR
 from .siren import Siren
 from .wire import Wire
-from .loss import R3Loss, RPWLoss
+from .loss import R3Loss, RPWLoss, W2Loss
 
 '''
 '''
@@ -52,6 +52,8 @@ class Model(LightningModule):
             self.loss_fn = R3Loss()
         elif loss_fn == "RPWLoss":
             self.loss_fn = RPWLoss()
+        elif loss_fn == "W2Loss":
+            self.loss_fn = W2Loss()
         else:
             self.loss_fn = getattr(nn, loss_fn)()
 
@@ -74,7 +76,7 @@ class Model(LightningModule):
         self.denormalize = None
 
         #manual optimization
-        # self.automatic_optimization = False
+        self.automatic_optimization = False
 
         #exact parameter count
         print(f"Exact parameter count: {sum(p.numel() for p in self.parameters())}")
@@ -94,28 +96,29 @@ class Model(LightningModule):
         torch loss
     '''
     def training_step(self, batch, idx):
-        coords, features = batch
-
-        preds = self(coords)
-
-        loss = self.loss_fn(preds, features)
-        self.log('train_loss', loss, on_step=False, on_epoch=True, sync_dist=True)
-
-        return loss
-
         # coords, features = batch
 
-        # opt = self.optimizers()
+        # preds = self(coords)
 
-        # def closure():
-        #     loss = self.loss_fn(self(coords), features)
-        #     opt.zero_grad()
-        #     self.log('train_loss', loss, on_step=True, on_epoch=False, sync_dist=True)
-        #     self.manual_backward(loss)
+        # loss = self.loss_fn(preds, features)
+        # self.log('train_loss', loss, on_step=False, on_epoch=True, sync_dist=True)
 
-        # for i in range(5): opt.step(closure)
+        # return loss
 
-        # return
+        coords, features = batch
+
+        opt = self.optimizers()
+
+        def closure():
+            c, preds = self.inr(coords)
+            loss = self.loss_fn(c, preds, features)
+            opt.zero_grad()
+            self.log('train_loss', loss, on_step=True, on_epoch=False, sync_dist=True)
+            self.manual_backward(loss)
+
+        for i in range(5): opt.step(closure)
+
+        return
 
     '''
     [Optional] A single validation step.

@@ -22,12 +22,12 @@ train:
 
 #Model arguments
 model:
-  ckpt_path: "lightning_logs/flat_plate_2d/3c/ds_4/checkpoints/best-epoch=4494.ckpt" #str, only use this if you want to continue training model from checkpoint
+  ckpt_path: "lightning_logs/flat_plate_2d/4c/ds_0/checkpoints/best-epoch=3907.ckpt" #str, only use this if you want to continue training model from checkpoint
   inr_type: "siren"
   output_activation: "Identity"
-  hidden_features: 256
+  hidden_features: 128
   hidden_layers: 5
-  loss_fn: "R3Loss"
+  loss_fn: "W2Loss"
   learning_rate: 0.0001 #float
   scheduler: False
 
@@ -37,14 +37,15 @@ data:
   points_path: "points_p1.npy" #str
   features_path: "features_p1.npy" #str
   batch_size: null #int
-  channels: [1,2,3] #list[int]
+  channels: [0,1,2,3] #list[int]
   normalize: False #bool
   split: 1.0 #float [0,1]
   shuffle: False #bool
+  gradients: True
 
 #Miscellaneous arguments
 misc:
   early_stopping: False #bool
   make_gif: False #bool
   compute_stats: True #bool
-  finetune: True
+  finetune: False

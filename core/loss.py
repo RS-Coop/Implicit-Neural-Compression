@@ -54,9 +54,9 @@ class W2Loss(nn.Module):
             J = J[:,:,:-1]
 
         #concatenate with preds
-        preds = torch.cat(preds, J.reshape(-1), dim=1)
+        preds = torch.cat((preds, torch.flatten(J, start_dim=1)), dim=1)
 
         #compute error metric
-        error = torch.functional.mse(preds, target)
+        error = torch.nn.functional.mse_loss(preds, target)
 
         return error

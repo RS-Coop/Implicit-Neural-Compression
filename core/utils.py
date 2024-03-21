@@ -66,7 +66,7 @@ class FineTuner(BaseFinetuning):
         super().__init__(**kwargs)
 
     def freeze_before_training(self, pl_module):
-        for layer in pl_module.inr.net[1:-1]:
+        for layer in pl_module.inr.net[1:]:
             self.freeze(layer)
 
     def finetune_function(self, pl_module, current_epoch, optimizer):

@@ -80,7 +80,7 @@ class Siren(nn.Module):
     def forward(self, coords):
         # coords = coords.clone().detach().requires_grad_(True) # allows to take derivative w.r.t. input
         # output = self.net(coords)
-        # return output
+        # return coords, output
 
         return self.net(coords)
 
