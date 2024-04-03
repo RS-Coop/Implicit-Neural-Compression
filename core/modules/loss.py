@@ -5,7 +5,7 @@
 import torch
 import torch.nn as nn
 from .metrics import r3error, rpwerror
-from .diff_ops import jacobian
+from ..utils.diff_ops import jacobian
 
 '''
 Root relative reconstruction loss

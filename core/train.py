@@ -11,9 +11,8 @@ from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 
 from core.model import Model
 from core.data import DataModule
-# from core.INC import Model
-# from core.data_2 import DataModule
-from .utils import Logger, FineTuner
+
+from .utils.utils import Logger, FineTuner
 
 def train(config_path, config):
 
@@ -41,12 +40,14 @@ def train(config_path, config):
     if trainer_args['enable_checkpointing']:
         if trainer_args.get('limit_val_batches') != 0:
             monitor = 'val_err'
+            k = 1
         else:
             monitor = None
+            k = 0
 
         callbacks.append(ModelCheckpoint(monitor=monitor,
                                             save_last=True,
-                                            save_top_k=1,
+                                            save_top_k=k,
                                             mode='min',
                                             filename='best-{epoch}'))
 

@@ -12,7 +12,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader, random_split
 from pytorch_lightning import LightningDataModule
-from .sampler import OnlineSampler, WindowSampler
+from .modules.buffer import Buffer
 
 '''
 '''
@@ -44,9 +44,11 @@ class MeshDataset(Dataset):
 
             if gradients:
                 g_path = features_path.with_stem(features_path.stem+"_gradients")
-                self.gradients = torch.from_numpy(np.load(g_path).astype(np.float32))
+                gradients = torch.from_numpy(np.load(g_path).astype(np.float32))
 
-                #NOTE: Should extract appropriate gradient channels, assert dimensions, and move dimensions
+                assert gradients.dim() == 4 and gradients.shape[-1] == self.points.shape[1], f"Gradients have incorrect shape"
+
+                self.gradients = torch.flatten(gradients[:,:,channels,:], start_dim=2)
             else:
                 self.gradients = None
 
@@ -111,33 +113,37 @@ class MeshDataset(Dataset):
         return
 
     def __len__(self):
-        return self.num_points*self.num_snapshots #time X num_points
+        return self.num_snapshots
 
     def __getitem__(self, idx):
-        i = idx%self.num_points
-        t = idx//self.num_points
-
         #normalized time
-        t_coord = torch.tensor(2*(t/(self.num_snapshots-1))-1).unsqueeze(0)
-        # t_coord = torch.tensor(0.).unsqueeze(0)
+        t_coord = torch.tensor(2*(idx/(self.num_snapshots-1))-1).expand(self.num_points, 1)
 
+        #coordinates
+        coordinates = torch.cat((self.points,t_coord))
+
+        #features
         if self.gradients != None:
-            features = torch.cat((self.features[t,i,:], self.gradients[t,i,:]))
+            features = torch.cat((self.features[idx,:,:], self.gradients[idx,:,:]))
         else:
-            features = self.features[t,i,:]
+            features = self.features[idx,:,:]
 
-        return torch.cat((self.points[i,:],t_coord)), features
+        return coordinates, features
     
-    # def __getitems__(self, idxs):
-    #     idxs = torch.tensor(idxs)
+    def __getitems__(self, idxs):
+        #normalized time
+        t_coord = (2*(torch.tensor(idxs)/(self.num_snapshots-1))-1).view(-1,1,1).expand(-1, self.num_points, -1)
 
-    #     i = idxs%self.num_points
-    #     t = idxs//self.num_points
+        #coordinates
+        coordinates = torch.cat((self.points.expand(len(idxs), -1, -1), t_coord), dim=2)
 
-    #     #normalized time
-    #     t_coord = (2*(t/(self.num_snapshots-1))-1).unsqueeze(1)
+        #features
+        if self.gradients != None:
+            features = torch.cat((self.features[idxs,:,:], self.gradients[idxs,:,:]), dim=2)
+        else:
+            features = self.features[idxs,:,:]
 
-    #     return torch.cat((self.points[i,:],t_coord), dim=1), self.features.view(len(self),-1)[idxs,:]
+        return torch.flatten(coordinates, end_dim=1), torch.flatten(features, end_dim=1)
     
     def get_points(self, denormalize=True):
 
@@ -172,6 +178,7 @@ class DataModule(LightningDataModule):
             features_path,
             batch_size,
             channels,
+            buffer = {},
             gradients = False,
             data_dir = "./",
             normalize = True,
@@ -227,11 +234,11 @@ class DataModule(LightningDataModule):
 
         if (stage == "test" or stage is None) and self.test is None:
             #load dataset
-            self.test = MeshDataset(self.points_path, self.features_path, self.channels, normalize=self.normalize, gradients=self.gradients)
+            self.test = MeshDataset(self.points_path, self.features_path, self.channels, normalize=self.normalize, gradients=False)
 
         if (stage == "predict" or stage is None) and self.predict is None:
             #load dataset
-            self.predict = MeshDataset(self.points_path, self.features_path, self.channels, normalize=self.normalize, gradients=self.gradients)
+            self.predict = MeshDataset(self.points_path, self.features_path, self.channels, normalize=self.normalize, gradients=False)
 
         if stage not in ["fit", "test", "predict", None]:
             raise ValueError("Stage must be one of fit, test, predict")
@@ -242,8 +249,8 @@ class DataModule(LightningDataModule):
     Used in Trainer.fit
     '''
     def train_dataloader(self):
-        if self.batch_size == None and self.shuffle == False:
-            batch_sampler = OnlineSampler(self.train.dataset.num_points, self.train.dataset.num_snapshots)
+        if len(self.buffer) != 0:
+            batch_sampler = Buffer(self.train.dataset.num_snapshots, **self.buffer, batch_size=self.batch_size)
 
             return DataLoader(self.train,
                             batch_sampler=batch_sampler,
@@ -256,7 +263,8 @@ class DataModule(LightningDataModule):
                             shuffle=self.shuffle,
                             num_workers=self.num_workers*self.trainer.num_devices,
                             persistent_workers=self.persistent_workers,
-                            pin_memory=self.pin_memory)
+                            pin_memory=self.pin_memory,
+                            collate_fn=lambda x: x)
 
     '''
     Used in Trainer.fit
@@ -266,25 +274,28 @@ class DataModule(LightningDataModule):
                             batch_size=self.batch_size,
                             num_workers=self.num_workers*self.trainer.num_devices,
                             persistent_workers=self.persistent_workers,
-                            pin_memory=self.pin_memory)
+                            pin_memory=self.pin_memory,
+                            collate_fn=lambda x: x)
     '''
     [Optional] Used in Trainer.test
     '''
     def test_dataloader(self):
         return DataLoader(self.test,
-                            batch_size=self.test.num_points,
+                            batch_size=self.batch_size,
                             num_workers=self.num_workers*self.trainer.num_devices,
                             persistent_workers=self.persistent_workers,
-                            pin_memory=self.pin_memory)
+                            pin_memory=self.pin_memory,
+                            collate_fn=lambda x: x)
     '''
     [Optional] Used in Trainer.predict
     '''
     def predict_dataloader(self):
         return DataLoader(self.predict,
-                            batch_size=self.predict.num_points,
+                            batch_size=self.batch_size,
                             num_workers=self.num_workers*self.trainer.num_devices,
                             persistent_workers=self.persistent_workers,
-                            pin_memory=self.pin_memory)
+                            pin_memory=self.pin_memory,
+                            collate_fn=lambda x: x)
     '''
     [Optional] Clean up data
     '''

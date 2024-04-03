@@ -8,13 +8,11 @@ import numpy as np
 import torch
 from pytorch_lightning import Trainer
 
-from .gif import make_gif
-
 from core.model import Model
 from core.data import DataModule
-# from core.INC import Model
-# from core.data_2 import DataModule
-from .utils import Logger
+
+from .utils.gif import make_gif
+from .utils.utils import Logger
 
 def test(log_dir, config):
 
@@ -63,7 +61,7 @@ def test(log_dir, config):
     if misc_args.get('make_gif'):
         make_gif(trainer, datamodule, model)
 
-    if misc_args.get('export_txt'):
+    if misc_args.get('export'):
         with torch.inference_mode():
             data = trainer.predict(model=model, datamodule=datamodule)
 

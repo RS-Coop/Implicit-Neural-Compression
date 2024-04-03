@@ -36,12 +36,15 @@ data:
   spatial_dim: 2 #int
   points_path: "points_p1.npy" #str
   features_path: "features_p1.npy" #str
-  batch_size: null #int
+  batch_size: 5 #int
   channels: [0,1,2,3] #list[int]
   normalize: False #bool
   split: 1.0 #float [0,1]
   shuffle: False #bool
   gradients: True
+  buffer:
+    buffer_size: 8
+    cycles: 1
 
 #Miscellaneous arguments
 misc:

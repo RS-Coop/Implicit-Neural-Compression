@@ -24,25 +24,32 @@ train:
 model:
   ckpt_path: #str, only use this if you want to continue training model from checkpoint
   inr_type: #str
+  output_activation: #str
   hidden_features: #int
   hidden_layers: #int
+  loss_fn: #str
   learning_rate: #float
   scheduler: #bool
-  output_activation: #str
 
 #PT LightningDataModule arguments
 data:
   spatial_dim: #int
   points_path: #str
   features_path: #str
+  gradients: #bool
   batch_size: #int
   channels: #list[int]
   normalize: #bool
   split: #float [0,1]
   shuffle: #bool
+  buffer:
+    buffer_size: #int
+    cycles: #int
 
 #Miscellaneous arguments
 misc:
   early_stopping: #bool
   make_gif: #bool
   compute_stats: #bool
+  export: #bool
+  finetune: #bool

@@ -9,8 +9,6 @@ import warnings
 
 '''
 Returns a method for plotting a set of features.
-
-NOTE: In the future, this could use the adjacency
 '''
 def get_plot_func(points):
 
@@ -55,7 +53,9 @@ def make_gif(trainer, datamodule, model):
     with torch.inference_mode():
         data = trainer.predict(model=model, datamodule=datamodule)
 
-    data = datamodule.predict.denorm_f(torch.stack(data))
+    data = torch.stack(data).reshape(len(datamodule.predict), -1, datamodule.output_shape[1])
+
+    data = datamodule.predict.denorm_f(data)
 
     #get original data
     raw = datamodule.predict.get_features()
