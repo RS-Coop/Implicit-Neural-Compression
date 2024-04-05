@@ -15,6 +15,8 @@ from .modules.siren import Siren
 from .modules.wire import Wire
 from .modules.loss import R3Loss, RPWLoss, W2Loss
 
+from .utils.diff_ops import jacobian
+
 '''
 '''
 class Model(LightningModule):
@@ -86,6 +88,10 @@ class Model(LightningModule):
     def forward(self, coords):
         return self.output_activation(self.inr(coords))
 
+        # c, output = self.inr(coords)
+
+        # return c, self.output_activation(output)
+
     '''
     A single training step on the given batch.
 
@@ -95,11 +101,13 @@ class Model(LightningModule):
     def training_step(self, batch, idx):
         coords, features = batch
 
-        c, preds = self(coords)
+        preds = self(coords)
+        # c, preds = self(coords)
 
-        # loss = self.loss_fn(preds, features)
-        loss = self.loss_fn(c, preds, features)
+        loss = self.loss_fn(preds, features)
+        # loss = self.loss_fn(c, preds, features)
         self.log('train_loss', loss, on_step=False, on_epoch=True, sync_dist=True)
+        # self.log('train_loss', loss, on_step=True, on_epoch=False, sync_dist=True)
 
         return loss
 
@@ -125,7 +133,8 @@ class Model(LightningModule):
         coords, features = batch
 
         #predictions
-        _, preds = self(coords)
+        preds = self(coords)
+        # _, preds = self(coords)
 
         #compute error
         self.error.update(preds, features)
@@ -142,7 +151,8 @@ class Model(LightningModule):
         coords, features = batch
 
         #predictions
-        _, preds = self(coords)
+        preds = self(coords)
+        # _, preds = self(coords)
 
         #update error
         if self.denormalize != None:
@@ -191,7 +201,20 @@ class Model(LightningModule):
     def predict_step(self, batch, idx):
         coords, _ = batch
 
-        return self(coords)[1]
+        # return self(coords)[1]
+        return self(coords)
+
+        # coords, _ = batch
+
+        # c, preds = self(coords)
+
+        # #compute jacobian
+        # J = jacobian(preds, c)[:,:,:-1]
+
+        # #concatenate with preds
+        # preds = torch.cat((preds, torch.flatten(J, start_dim=1)), dim=1)
+
+        # return preds
 
     '''
     Configure optimizers and optionally configure learning rate scheduler.

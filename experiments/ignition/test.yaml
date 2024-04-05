@@ -36,9 +36,9 @@ data:
   spatial_dim: 2 #int
   points_path: "points.npy" #str
   features_path: "features.npy" #str
-  gradients: False
+  gradients: False #bool
   batch_size: 2 #int
-  channels: [1] #list[int]
+  channels: [0] #list[int]
   normalize: False #bool
   split: 1.0 #float [0,1]
   shuffle: False #bool
@@ -48,4 +48,4 @@ misc:
   early_stopping: False #bool
   make_gif: True #bool
   compute_stats: True #bool
-  finetune: False
+  finetune: False #bool
