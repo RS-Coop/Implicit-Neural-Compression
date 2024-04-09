@@ -37,12 +37,12 @@ data:
   points_path: "points.npy" #str
   features_path: "features.npy" #str
   gradients: False #bool
-  batch_size: 500 #int
+  batch_size: 2 #int
   channels: [0] #list[int]
   normalize: False #bool
   split: 1.0 #float [0,1]
   shuffle: False #bool
-  index_time: False
+  index_time: True
 
 #Miscellaneous arguments
 misc:

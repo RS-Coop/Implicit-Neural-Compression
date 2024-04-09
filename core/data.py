@@ -124,19 +124,30 @@ class MeshDataset(Dataset):
         return self.num_samples
 
     def __getitem__(self, idx):
-        #normalized time
-        t_coord = torch.tensor(2*(idx/(self.num_snapshots-1))-1).expand(self.num_points, 1)
+        if self.index_time:
+            #normalized time
+            t_coord = torch.tensor(2*(idx/(self.num_snapshots-1))-1).expand(self.num_points, 1)
 
-        #coordinates
-        coordinates = torch.cat((self.points,t_coord))
+            #coordinates
+            coordinates = torch.cat((self.points,t_coord))
 
-        #features
-        if self.gradients != None:
-            features = torch.cat((self.features[idx,:,:], self.gradients[idx,:,:]))
+            #features
+            if self.gradients != None:
+                features = torch.cat((self.features[idx,:,:], self.gradients[idx,:,:]))
+            else:
+                features = self.features[idx,:,:]
+
+            return coordinates, features
+        
         else:
-            features = self.features[idx,:,:]
+            i = idx%self.num_points
+            t = idx//self.num_points
 
-        return coordinates, features
+            #normalized time
+            t_coord = torch.tensor(2*(t/(self.num_snapshots-1))-1).unsqueeze(0)
+
+            return torch.cat((self.points[i,:],t_coord)), self.features[t,i,:]
+    
     
     def __getitems__(self, idxs):
         if self.index_time:
