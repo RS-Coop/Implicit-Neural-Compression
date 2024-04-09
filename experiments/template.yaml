@@ -41,6 +41,7 @@ data:
   channels: #list[int]
   normalize: #bool
   split: #float [0,1]
+  index_time: #bool
   shuffle: #bool
   buffer:
     buffer_size: #int

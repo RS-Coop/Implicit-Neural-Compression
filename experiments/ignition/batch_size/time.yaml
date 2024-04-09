@@ -16,7 +16,7 @@ train:
   log_every_n_steps: 1 #int
   enable_progress_bar: False #bool
   # profiler: #str
-  # limit_val_batches: 0 #int
+  limit_val_batches: 0 #int
   max_epochs: 1000 #int
   # max_steps: #int
 
@@ -27,25 +27,26 @@ model:
   output_activation: "Identity"
   hidden_features: 128
   hidden_layers: 3
-  loss_fn: "MSELoss"
+  loss_fn: "R3Loss"
   learning_rate: 0.0001 #float
-  scheduler: True
+  scheduler: False
 
 #PT LightningDataModule arguments
 data:
   spatial_dim: 2 #int
   points_path: "points.npy" #str
   features_path: "features.npy" #str
-  batch_size: 2375 #int
+  batch_size: 1 #int
   channels: [0,1,2,3] #list[int]
   normalize: False #bool
-  split: 0.95 #float [0,1]
-  shuffle: True #bool
-  index_time: False
+  split: 1.0 #float [0,1]
+  shuffle: False #bool
+  index_time: True
 
 #Miscellaneous arguments
 misc:
   early_stopping: False #bool
   make_gif: True #bool
   compute_stats: True #bool
+  export: True #bool
   fintetune: False #bool

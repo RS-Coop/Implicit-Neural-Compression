@@ -23,7 +23,8 @@ class MeshDataset(Dataset):
             channels,
             channels_last=True,
             normalize=True,
-            gradients=False
+            gradients=False,
+            index_time=True
         ):
         super().__init__()
 
@@ -110,10 +111,17 @@ class MeshDataset(Dataset):
         self.num_points = self.points.shape[0]
         self.num_snapshots = self.features.shape[0]
 
+        if index_time:
+            self.num_samples = self.num_snapshots
+        else:
+            self.num_samples = self.num_snapshots*self.num_points
+
+        self.index_time = index_time
+
         return
 
     def __len__(self):
-        return self.num_snapshots
+        return self.num_samples
 
     def __getitem__(self, idx):
         #normalized time
@@ -131,19 +139,31 @@ class MeshDataset(Dataset):
         return coordinates, features
     
     def __getitems__(self, idxs):
-        #normalized time
-        t_coord = (2*(torch.tensor(idxs)/(self.num_snapshots-1))-1).view(-1,1,1).expand(-1, self.num_points, -1)
+        if self.index_time:
+            #normalized time
+            t_coord = (2*(torch.tensor(idxs)/(self.num_snapshots-1))-1).view(-1,1,1).expand(-1, self.num_points, -1)
 
-        #coordinates
-        coordinates = torch.cat((self.points.expand(len(idxs), -1, -1), t_coord), dim=2)
+            #coordinates
+            coordinates = torch.cat((self.points.expand(len(idxs), -1, -1), t_coord), dim=2)
 
-        #features
-        if self.gradients != None:
-            features = torch.cat((self.features[idxs,:,:], self.gradients[idxs,:,:]), dim=2)
+            #features
+            if self.gradients != None:
+                features = torch.cat((self.features[idxs,:,:], self.gradients[idxs,:,:]), dim=2)
+            else:
+                features = self.features[idxs,:,:]
+
+            return torch.flatten(coordinates, end_dim=1), torch.flatten(features, end_dim=1)
+        
         else:
-            features = self.features[idxs,:,:]
+            idxs = torch.tensor(idxs)
 
-        return torch.flatten(coordinates, end_dim=1), torch.flatten(features, end_dim=1)
+            i = idxs%self.num_points
+            t = idxs//self.num_points
+
+            #normalized time
+            t_coord = (2*(t/(self.num_snapshots-1))-1).unsqueeze(1)
+
+            return torch.cat((self.points[i,:],t_coord), dim=1), self.features.view(len(self),-1)[idxs,:]
     
     def get_points(self, denormalize=True):
 
@@ -182,6 +202,7 @@ class DataModule(LightningDataModule):
             gradients = False,
             data_dir = "./",
             normalize = True,
+            index_time = False,
             split = 0.8,
             shuffle = True,
             num_workers = 4,
@@ -225,7 +246,7 @@ class DataModule(LightningDataModule):
     def setup(self, stage=None):
         if (stage == "fit" or stage is None) and (self.train is None or self.val is None):
             #load dataset
-            train_val = MeshDataset(self.points_path, self.features_path, self.channels, normalize=self.normalize, gradients=self.gradients)
+            train_val = MeshDataset(self.points_path, self.features_path, self.channels, normalize=self.normalize, gradients=self.gradients, index_time=self.index_time)
 
             train_size = round(self.split*len(train_val))
             val_size = len(train_val) - train_size
@@ -234,11 +255,11 @@ class DataModule(LightningDataModule):
 
         if (stage == "test" or stage is None) and self.test is None:
             #load dataset
-            self.test = MeshDataset(self.points_path, self.features_path, self.channels, normalize=self.normalize, gradients=False)
+            self.test = MeshDataset(self.points_path, self.features_path, self.channels, normalize=self.normalize, gradients=False, index_time=False)
 
         if (stage == "predict" or stage is None) and self.predict is None:
             #load dataset
-            self.predict = MeshDataset(self.points_path, self.features_path, self.channels, normalize=self.normalize, gradients=False)
+            self.predict = MeshDataset(self.points_path, self.features_path, self.channels, normalize=self.normalize, gradients=False, index_time=False)
 
         if stage not in ["fit", "test", "predict", None]:
             raise ValueError("Stage must be one of fit, test, predict")
