@@ -17,7 +17,7 @@ train:
   enable_progress_bar: True #bool
   # profiler: #str
   limit_val_batches: 0 #int
-  max_epochs: 10 #int
+  max_epochs: 1 #int
   # max_steps: #int
 
 #Model arguments
@@ -37,11 +37,12 @@ data:
   points_path: "points.npy" #str
   features_path: "features.npy" #str
   gradients: False #bool
-  batch_size: 2 #int
+  batch_size: 500 #int
   channels: [0] #list[int]
   normalize: False #bool
   split: 1.0 #float [0,1]
   shuffle: False #bool
+  index_time: False
 
 #Miscellaneous arguments
 misc:
