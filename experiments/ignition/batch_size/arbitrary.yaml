@@ -29,7 +29,7 @@ model:
   hidden_layers: 3
   loss_fn: "R3Loss"
   learning_rate: 0.0001 #float
-  scheduler: True
+  scheduler: False
 
 #PT LightningDataModule arguments
 data:
