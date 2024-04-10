@@ -266,11 +266,11 @@ class DataModule(LightningDataModule):
 
         if (stage == "test" or stage is None) and self.test is None:
             #load dataset
-            self.test = MeshDataset(self.points_path, self.features_path, self.channels, normalize=self.normalize, gradients=False, index_time=False)
+            self.test = MeshDataset(self.points_path, self.features_path, self.channels, normalize=self.normalize, gradients=False, index_time=True)
 
         if (stage == "predict" or stage is None) and self.predict is None:
             #load dataset
-            self.predict = MeshDataset(self.points_path, self.features_path, self.channels, normalize=self.normalize, gradients=False, index_time=False)
+            self.predict = MeshDataset(self.points_path, self.features_path, self.channels, normalize=self.normalize, gradients=False, index_time=True)
 
         if stage not in ["fit", "test", "predict", None]:
             raise ValueError("Stage must be one of fit, test, predict")
