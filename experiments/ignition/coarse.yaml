@@ -4,7 +4,7 @@
 #Documentation: https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
 #Comment out options you aren't using
 train:
-  accelerator: "gpu" #str e.g. "gpu"
+  accelerator: "cpu" #str e.g. "gpu"
   devices: "auto" #int
   # num_nodes: #int
   # strategy: #str
@@ -14,11 +14,11 @@ train:
   default_root_dir: "./lightning_logs" #str
   logger: True #bool
   log_every_n_steps: 1 #int
-  enable_progress_bar: False #bool
+  enable_progress_bar: True #bool
   # profiler: #str
-  limit_val_batches: 0 #int
+  # limit_val_batches: 0 #int
   max_epochs: 1000 #int
-  # max_steps: #int
+  # max_steps: 1 #int
 
 #Model arguments
 model:
@@ -27,26 +27,33 @@ model:
   output_activation: "Identity"
   hidden_features: 128
   hidden_layers: 3
-  loss_fn: "R3Loss"
+  loss_fn: "MSELoss"
   learning_rate: 0.0001 #float
-  scheduler: False
+  scheduler: True
 
 #PT LightningDataModule arguments
 data:
   spatial_dim: 2 #int
-  points_path: "points.npy" #str
-  features_path: "features.npy" #str
-  batch_size: 2500 #int
+  points_path: "points_coarse.npy" #str
+  features_path: "features_coarse.npy" #str
+  gradients: False #bool
+  batch_size: 8 #int
   channels: [0,1,2,3] #list[int]
   normalize: False #bool
-  split: 1.0 #float [0,1]
-  shuffle: True #bool
-  index_time: False
+  split: 0.96 #float [0,1]
+  index_time: True
+  shuffle: False #bool
+  # buffer:
+  #   hifi_size: 2 #int
+  #   lofi_size: 10 #int
+  #   cycles: 1 #int
+  #   hifi_batch_size: 2 #int
+  #   lofi_batch_size: 5 #int
 
 #Miscellaneous arguments
 misc:
   early_stopping: False #bool
-  make_gif: True #bool
+  make_gif: False #bool
   compute_stats: True #bool
-  export: True #bool
-  fintetune: False #bool
+  export: False #bool
+  finetune: False #bool

@@ -81,6 +81,11 @@ class Model(LightningModule):
         print(f"Exact parameter count: {sum(p.numel() for p in self.parameters())}")
 
         return
+    
+    def unpack(self, batch):
+        (c1, f1), (c2, f2) = batch
+
+        return torch.cat((c1, c2)), torch.cat((f1, f2))
 
     '''
     [Optional] A forward eavaluation of the network.
@@ -99,7 +104,8 @@ class Model(LightningModule):
         torch loss
     '''
     def training_step(self, batch, idx):
-        coords, features = batch
+        # coords, features = batch
+        coords, features = self.unpack(batch)
 
         preds = self(coords)
         # c, preds = self(coords)

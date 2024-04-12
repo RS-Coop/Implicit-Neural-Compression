@@ -41,11 +41,18 @@ data:
   channels: #list[int]
   normalize: #bool
   split: #float [0,1]
-  index_time: #bool
   shuffle: #bool
-  buffer:
-    buffer_size: #int
-    cycles: #int
+  buffers:
+    full:
+      size: #int
+      cycles: #int
+      batch_size: #int
+      slide: #bool
+    coarse:
+      size: #int
+      cycles: #int
+      batch_size: #int
+      slide: #bool
 
 #Miscellaneous arguments
 misc:

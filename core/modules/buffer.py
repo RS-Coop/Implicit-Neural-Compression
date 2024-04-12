@@ -11,28 +11,35 @@ from collections import deque
 
 class Buffer(Sampler):
 
-    def __init__(self, T, buffer_size=8, cycles=1, batch_size=4):
+    def __init__(self, T, size=8, cycles=1, batch_size=8, slide=True):
         self.T = T
 
-        self.buffer_size = buffer_size
-        self.buffer = deque(maxlen=buffer_size)
+        if size == -1:
+            self.size = T
+        else:
+            self.size = size
+
+        self.buffer = deque(maxlen=self.size)
 
         self.cycles = cycles
 
         self.batch_size = batch_size
 
-        self.num_batches = int(np.ceil(buffer_size/batch_size))
+        #wait until buffer is full before yielding
+        self.slide = slide
 
     def __iter__(self):
-
         #iterate over snapshots
         for i in range(len(self)):
 
             #update buffer
             if i < self.T:
                 self.buffer.append(i)
-            else:
+            elif self.slide:
                 self.buffer.popleft()
+
+            if not self.slide and i < self.size-1:
+                continue
 
             torch_buffer = torch.tensor(list(self.buffer))
 
@@ -40,11 +47,10 @@ class Buffer(Sampler):
             for j in range(self.cycles):
                 
                 #shuffle
-                s = torch.randperm(len(self.buffer))
+                split = torch.split(torch.randperm(len(self.buffer)), self.batch_size)
 
-                for batch_idxs in torch.split(s, self.batch_size):
-                    yield torch_buffer[batch_idxs]
+                for idxs in split:
+                   yield torch_buffer[idxs]
 
     def __len__(self):
-
-        return self.T+self.buffer_size-1
+        return self.T + self.size - 1 if self.slide else self.T - 1

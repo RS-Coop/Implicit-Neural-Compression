@@ -53,7 +53,7 @@ def make_gif(trainer, datamodule, model):
     with torch.inference_mode():
         data = trainer.predict(model=model, datamodule=datamodule)
 
-    data = torch.stack(data).reshape(len(datamodule.predict), -1, datamodule.output_shape[1])
+    data = torch.cat(data).reshape(len(datamodule.predict), -1, datamodule.output_shape[1])
 
     data = datamodule.predict.denorm_f(data)
 
