@@ -117,7 +117,7 @@ class Model(LightningModule):
 
         loss = self.loss_fn(preds, features)
         # loss = self.loss_fn(c, preds, features)
-        self.log('train_loss', loss, on_step=False, on_epoch=True, sync_dist=True)
+        self.log('train_loss', loss, on_step=False, on_epoch=True, sync_dist=True, batch_size=coords.shape[0])
         # self.log('train_loss', loss, on_step=True, on_epoch=False, sync_dist=True)
 
         return loss

@@ -283,7 +283,7 @@ class DataModule(LightningDataModule):
 
             if self.online:
                 self.train = train_val
-                self.coarse = CoarseDataset(train_val, sample_factor=0.1)
+                self.coarse = CoarseDataset(train_val, sample_factor=0.1) if self.buffer['coarse'] else None
 
             else:
                 train_size = round(self.split*len(train_val))
@@ -316,15 +316,18 @@ class DataModule(LightningDataModule):
                                         persistent_workers=self.persistent_workers,
                                         pin_memory=self.pin_memory,
                                         collate_fn=lambda x: x)
-            
-            coarse_loader = DataLoader(self.coarse,
-                                        batch_sampler=Buffer(self.train.num_snapshots, **self.buffer['coarse']),
-                                        num_workers=self.num_workers*self.trainer.num_devices,
-                                        persistent_workers=self.persistent_workers,
-                                        pin_memory=self.pin_memory,
-                                        collate_fn=lambda x: x)
+            if self.buffer['coarse']:
+                coarse_loader = DataLoader(self.coarse,
+                                            batch_sampler=Buffer(self.train.num_snapshots, **self.buffer['coarse']),
+                                            num_workers=self.num_workers*self.trainer.num_devices,
+                                            persistent_workers=self.persistent_workers,
+                                            pin_memory=self.pin_memory,
+                                            collate_fn=lambda x: x)
 
-            return CombinedLoader((full_loader, coarse_loader), mode='max_size_cycle')
+                return CombinedLoader((full_loader, coarse_loader), mode='max_size_cycle')
+            
+            else:
+                return full_loader
 
         else:
             return DataLoader(self.train,

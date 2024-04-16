@@ -34,6 +34,7 @@ model:
 #PT LightningDataModule arguments
 data:
   spatial_dim: #int
+  data_dir: #str
   points_path: #str
   features_path: #str
   gradients: #bool
