@@ -83,9 +83,15 @@ class Model(LightningModule):
         return
     
     def unpack(self, batch):
-        (c1, f1), (c2, f2) = batch
+        if isinstance(batch[0], tuple):
+            (c1, f1), (c2, f2) = batch
 
-        return torch.cat((c1, c2)), torch.cat((f1, f2))
+            c = torch.cat((c1, c2))
+            f = torch.cat((f1, f2))
+        else:
+            c, f = batch
+
+        return c, f
 
     '''
     [Optional] A forward eavaluation of the network.
@@ -104,7 +110,6 @@ class Model(LightningModule):
         torch loss
     '''
     def training_step(self, batch, idx):
-        # coords, features = batch
         coords, features = self.unpack(batch)
 
         preds = self(coords)

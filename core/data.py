@@ -67,7 +67,8 @@ class MeshDataset(Dataset):
             raise e
         
         #normalize points
-        mx, mi = torch.aminmax(self.points, dim=0)
+        mx = torch.amax(self.points, dim=(0,1))
+        mi = torch.amin(self.points, dim=(0,1))
         self.points = 2*(self.points-mi)/(mx-mi)-1
 
         self.denorm_p = lambda p: ((p+1)/2)*(mx-mi).to(p.device) + mi.to(p.device)
@@ -163,7 +164,7 @@ class MeshDataset(Dataset):
         else:
             points = self.points
 
-        return points
+        return points[0,:,:] #NOTE: Assuming points are static across time
     
     def get_features(self, denormalize=True):
 
@@ -226,7 +227,7 @@ class DataModule(LightningDataModule):
             batch_size,
             channels,
             gradients = False,
-            buffers = None,
+            buffer = None,
             data_dir = "./",
             normalize = True,
             split = 0.8,
@@ -257,7 +258,7 @@ class DataModule(LightningDataModule):
         self.train, self.val, self.test, self.predict = None, None, None, None
 
         #online training
-        if self.buffers:
+        if self.buffer:
             self.online = True
         else:
             self.online = False
@@ -310,14 +311,14 @@ class DataModule(LightningDataModule):
         if self.online:
 
             full_loader = DataLoader(self.train,
-                                        batch_sampler=Buffer(self.train.num_snapshots, **self.buffers['full']),
+                                        batch_sampler=Buffer(self.train.num_snapshots, **self.buffer['full']),
                                         num_workers=self.num_workers*self.trainer.num_devices,
                                         persistent_workers=self.persistent_workers,
                                         pin_memory=self.pin_memory,
                                         collate_fn=lambda x: x)
             
             coarse_loader = DataLoader(self.coarse,
-                                        batch_sampler=Buffer(self.train.num_snapshots, **self.buffers['coarse']),
+                                        batch_sampler=Buffer(self.train.num_snapshots, **self.buffer['coarse']),
                                         num_workers=self.num_workers*self.trainer.num_devices,
                                         persistent_workers=self.persistent_workers,
                                         pin_memory=self.pin_memory,

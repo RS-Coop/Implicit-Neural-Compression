@@ -17,7 +17,7 @@ train:
   enable_progress_bar: True #bool
   # profiler: #str
   # limit_val_batches: 0 #int
-  max_epochs: 1000 #int
+  max_epochs: 100 #int
   # max_steps: 1 #int
 
 #Model arguments
@@ -34,21 +34,14 @@ model:
 #PT LightningDataModule arguments
 data:
   spatial_dim: 2 #int
-  points_path: "points_coarse.npy" #str
-  features_path: "features_coarse.npy" #str
+  points_path: "points_random.npy" #str
+  features_path: "features_random.npy" #str
   gradients: False #bool
   batch_size: 8 #int
   channels: [0,1,2,3] #list[int]
   normalize: False #bool
   split: 0.96 #float [0,1]
-  index_time: True
   shuffle: False #bool
-  # buffer:
-  #   hifi_size: 2 #int
-  #   lofi_size: 10 #int
-  #   cycles: 1 #int
-  #   hifi_batch_size: 2 #int
-  #   lofi_batch_size: 5 #int
 
 #Miscellaneous arguments
 misc:
