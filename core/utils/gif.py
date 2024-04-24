@@ -1,6 +1,5 @@
 import torch
 
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.tri import Triangulation
 from matplotlib.colors import Normalize, LogNorm

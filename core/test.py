@@ -12,6 +12,7 @@ from core.model import Model
 from core.data import DataModule
 
 from .utils.gif import make_gif
+from .utils.plots import make_error_plots
 from .utils.utils import Logger
 
 def test(log_dir, config):
@@ -57,6 +58,10 @@ def test(log_dir, config):
         with torch.inference_mode():
             trainer.test(model=model, datamodule=datamodule)
 
+    #make error plots
+    if misc_args.get("make_error_plots"):
+        make_error_plots(trainer, datamodule, model)
+
     #make GIF
     if misc_args.get('make_gif'):
         make_gif(trainer, datamodule, model)
@@ -65,7 +70,9 @@ def test(log_dir, config):
         with torch.inference_mode():
             data = trainer.predict(model=model, datamodule=datamodule)
 
-        data = datamodule.predict.denorm_f(torch.stack(data))
+        data = torch.cat(data).reshape(len(datamodule.predict), -1, datamodule.output_shape[1])
+
+        data = datamodule.predict.denorm_f(data)
         
         np.save(f'{trainer.logger.log_dir}/reconstruction.npy', data.numpy())
 

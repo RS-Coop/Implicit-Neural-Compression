@@ -13,7 +13,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader, random_split
 from pytorch_lightning import LightningDataModule
 from pytorch_lightning.utilities.combined_loader import CombinedLoader
-from .modules.buffer import Buffer
+from .modules.sampler import Buffer, Window, Queue
 
 '''
 '''
@@ -142,6 +142,8 @@ class MeshDataset(Dataset):
     
     def __getitems__(self, idxs):
         if isinstance(idxs, list): idxs = torch.tensor(idxs)
+
+        if idxs.numel() == 0: return None, None
 
         #normalized time
         t_coord = (2*idxs/(self.num_snapshots-1)-1).view(-1,1,1).expand(-1, self.num_points, -1)
@@ -311,14 +313,14 @@ class DataModule(LightningDataModule):
         if self.online:
 
             full_loader = DataLoader(self.train,
-                                        batch_sampler=Buffer(self.train.num_snapshots, **self.buffer['full']),
+                                        batch_sampler=Window(self.train.num_snapshots, **self.buffer['full']),
                                         num_workers=self.num_workers*self.trainer.num_devices,
                                         persistent_workers=self.persistent_workers,
                                         pin_memory=self.pin_memory,
                                         collate_fn=lambda x: x)
             if self.buffer['coarse']:
                 coarse_loader = DataLoader(self.coarse,
-                                            batch_sampler=Buffer(self.train.num_snapshots, **self.buffer['coarse']),
+                                            batch_sampler=Queue(self.train.num_snapshots, **self.buffer['coarse']),
                                             num_workers=self.num_workers*self.trainer.num_devices,
                                             persistent_workers=self.persistent_workers,
                                             pin_memory=self.pin_memory,

@@ -19,11 +19,11 @@ Root Relative Reconstruction (R3) Error.
 Input:
     preds, target: tensors of shape (B, C)
 '''
-def r3error(preds, targets):
+def r3error(preds, targets, dim=0):
     assert preds.shape == targets.shape, f"{preds.shape} does not equal {targets.shape}"
 
-    n = torch.sum((preds-targets)**2, dim=(0))
-    d = torch.sum((targets)**2, dim=(0))
+    n = torch.sum((preds-targets)**2, dim=dim)
+    d = torch.sum((targets)**2, dim=dim)
 
     return torch.sqrt(n/d)
 

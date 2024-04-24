@@ -60,5 +60,6 @@ misc:
   early_stopping: #bool
   make_gif: #bool
   compute_stats: #bool
+  make_error_plots: #bool
   export: #bool
   finetune: #bool

@@ -28,9 +28,11 @@ class Buffer(Sampler):
         #wait until buffer is full before yielding
         self.slide = slide
 
+        self.length = self.T + self.size - 1 if self.slide else self.T - 1
+
     def __iter__(self):
         #iterate over snapshots
-        for i in range(len(self)):
+        for i in range(self.length):
 
             #update buffer
             if i < self.T:
@@ -53,4 +55,40 @@ class Buffer(Sampler):
                    yield torch_buffer[idxs]
 
     def __len__(self):
-        return self.T + self.size - 1 if self.slide else self.T - 1
+        return self.length*self.cycles
+    
+class Window(Sampler):
+
+    def __init__(self, T, window_size=8, cycles=1):
+
+        self.T = T
+        self.window_size = window_size
+        self.cycles = cycles
+
+    def __iter__(self):
+
+        for i in range(len(self)):
+            for j in range(self.cycles):
+                yield list(range(i*self.window_size, (i+1)*self.window_size))
+
+    def __len__(self):
+        return (self.T//self.window_size)*self.cycles
+    
+class Queue(Sampler):
+
+    def __init__(self, T, step=8, cycles=1):
+
+        self.T = T
+        self.step = step
+        self.cycles = cycles
+        self.queue = []
+
+    def __iter__(self):
+        for i in range(len(self)):
+            for j in range(self.cycles):
+                yield self.queue
+            
+            self.queue.extend(list(range(i*self.step, (i+1)*self.step)))
+
+    def __len__(self):
+        return (self.T//self.step)*self.cycles
