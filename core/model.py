@@ -31,7 +31,7 @@ class Model(LightningModule):
             output_shape,
             inr_type = "siren",
             hidden_features = 128,
-            hidden_layers = 3,
+            blocks = 1,
             loss_fn = "R3Error",
             learning_rate = 1e-4,
             scheduler = True,
@@ -63,9 +63,9 @@ class Model(LightningModule):
         self.output_activation = getattr(nn, output_activation)()
 
         if inr_type == "siren":
-            self.inr = Siren(input_shape[1], hidden_features, hidden_layers, output_shape[1], outermost_linear=True)
+            self.inr = Siren(input_shape[1], hidden_features, blocks, output_shape[1], outermost_linear=True)
         elif inr_type == "wire":
-            self.inr = Wire(input_shape[1], hidden_features, hidden_layers, output_shape[1], outermost_linear=True)
+            self.inr = Wire(input_shape[1], hidden_features, blocks, output_shape[1], outermost_linear=True)
         else:
             raise Exception(f'Invalid inr_type {inr_type}')
 
@@ -78,9 +78,12 @@ class Model(LightningModule):
         self.denormalize = None
 
         #exact parameter count
-        print(f"Exact parameter count: {sum(p.numel() for p in self.parameters())}")
+        print(f"Exact parameter count: {self.size()}")
 
         return
+    
+    def size(self):
+        return sum(p.numel() for p in self.parameters())
     
     def unpack(self, batch):
         if isinstance(batch[0], tuple):
@@ -127,7 +130,8 @@ class Model(LightningModule):
         # return loss
 
         #REGULAR OPTIMIZATION
-        coords, features = self.unpack(batch)
+        # coords, features = self.unpack(batch)
+        coords, features = batch
 
         preds = self(coords)
         # c, preds = self(coords)

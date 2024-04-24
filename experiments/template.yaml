@@ -26,7 +26,7 @@ model:
   inr_type: #str
   output_activation: #str
   hidden_features: #int
-  hidden_layers: #int
+  blocks: #int
   loss_fn: #str
   learning_rate: #float
   scheduler: #bool
