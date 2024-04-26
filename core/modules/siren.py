@@ -55,18 +55,13 @@ class SineBlock(nn.Module):
         ):
         super().__init__()
 
-    #     self.net = nn.Sequential(SineLayer(width, width, bias=bias, omega_0=omega_0),
-    #                              SineLayer(width, width, bias=bias, omega_0=omega_0))
-
-        self.net = SineLayer(width, width, bias=bias, omega_0=omega_0)
-
-    # def forward(self, input):
-    #     output = self.net(input)
-
-    #     return 0.5*(input+output)
+        self.net = nn.Sequential(SineLayer(width, width, bias=bias, omega_0=omega_0),
+                                 SineLayer(width, width, bias=bias, omega_0=omega_0))
 
     def forward(self, input):
-        return self.net(input)
+        output = self.net(input)
+
+        return 0.5*(input+output)
         
 '''
 ''' 

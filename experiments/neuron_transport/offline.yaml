@@ -37,16 +37,16 @@ data:
   points_path: "points.npy" #str
   features_path: "features.npy" #str
   gradients: False #bool
-  batch_size: 8 #int
+  batch_size: 32 #int
   channels: [0] #list[int]
   normalize: False #bool
   split: 0.95 #float [0,1]
-  shuffle: True #bool
+  shuffle: False #bool
 
 #Miscellaneous arguments
 misc:
   early_stopping: False #bool
-  make_gif: True #bool
+  make_gif: False #bool
   compute_stats: True #bool
   make_error_plots: True #bool
   export: True #bool

@@ -26,7 +26,7 @@ model:
   inr_type: "siren"
   output_activation: "Identity"
   hidden_features: 128
-  blocks: 4
+  blocks: 3
   loss_fn: "R3Loss"
   learning_rate: 0.0001 #float
   scheduler: True
@@ -41,7 +41,7 @@ data:
   channels: [0,1,2,3] #list[int]
   normalize: False #bool
   split: 0.95 #float [0,1]
-  shuffle: True #bool
+  shuffle: False #bool
 
 #Miscellaneous arguments
 misc:

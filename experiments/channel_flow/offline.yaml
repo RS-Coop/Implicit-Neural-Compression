@@ -26,7 +26,7 @@ model:
   inr_type: "siren"
   output_activation: "Identity"
   hidden_features: 256
-  blocks: 2
+  blocks: 3
   loss_fn: "R3Loss"
   learning_rate: 0.0001 #float
   scheduler: True
@@ -37,16 +37,16 @@ data:
   points_path: "points_64.npy" #str
   features_path: "features_64_1000.npy" #str
   gradients: False #bool
-  batch_size: 8 #int
+  batch_size: 16 #int
   channels: [0,1,2] #list[int]
   normalize: False #bool
   split: 0.95 #float [0,1]
-  shuffle: True #bool
+  shuffle: False #bool
 
 #Miscellaneous arguments
 misc:
   early_stopping: False #bool
-  make_gif: True #bool
+  make_gif: False #bool
   compute_stats: True #bool
   make_error_plots: True #bool
   export: True #bool
