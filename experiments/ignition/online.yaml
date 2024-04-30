@@ -14,7 +14,7 @@ train:
   default_root_dir: "./lightning_logs" #str
   logger: True #bool
   log_every_n_steps: 1 #int
-  enable_progress_bar: True #bool
+  enable_progress_bar: False #bool
   # profiler: #str
   limit_val_batches: 0 #bool
   max_epochs: 1 #int
@@ -27,7 +27,7 @@ model:
   output_activation: "Identity"
   hidden_features: 128
   blocks: 2
-  loss_fn: "R3Loss"
+  loss_fn: "L1Loss"
   learning_rate: 0.0001 #float
   scheduler: False
 
@@ -54,10 +54,10 @@ data:
     #   slide: True #bool
     full:
       window_size: 10
-      cycles: 200
+      cycles: 300
     coarse:
       step: 10
-      cycles: 200
+      cycles: 300
       batch_size: 32
 
 #Miscellaneous arguments
