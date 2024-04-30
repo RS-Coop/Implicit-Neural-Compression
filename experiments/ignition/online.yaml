@@ -4,7 +4,7 @@
 #Documentation: https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
 #Comment out options you aren't using
 train:
-  accelerator: "cpu" #str e.g. "gpu"
+  accelerator: "gpu" #str e.g. "gpu"
   devices: "auto" #int
   # num_nodes: #int
   # strategy: #str
@@ -37,7 +37,7 @@ data:
   points_path: "points.npy" #str
   features_path: "features.npy" #str
   batch_size: 1 #int
-  channels: [0] #list[int]
+  channels: [1] #list[int]
   normalize: False #bool
   split: 1.0 #float [0,1]
   shuffle: False #bool
@@ -66,5 +66,5 @@ misc:
   make_gif: False #bool
   make_error_plots: True
   compute_stats: True #bool
-  export: False
+  export: True
   finetune: False
