@@ -63,16 +63,16 @@ class Model(LightningModule):
         self.output_activation = getattr(nn, output_activation)()
 
         if inr_type == "siren":
-            self.inr = Siren(input_shape[1], hidden_features, blocks, output_shape[1], outermost_linear=True)
+            self.inr = Siren(input_shape[2], hidden_features, blocks, output_shape[2], outermost_linear=True)
         elif inr_type == "wire":
-            self.inr = Wire(input_shape[1], hidden_features, blocks, output_shape[1], outermost_linear=True)
+            self.inr = Wire(input_shape[2], hidden_features, blocks, output_shape[2], outermost_linear=True)
         else:
             raise Exception(f'Invalid inr_type {inr_type}')
 
         #Metrics
-        self.error = R3Error(num_channels=output_shape[1])
+        self.error = R3Error(num_channels=output_shape[2])
             
-        self.test_metrics = tm.MetricCollection([RPWError(num_channels=output_shape[1]), RFError(num_channels=output_shape[1]), PSNR(num_channels=output_shape[1])])
+        self.test_metrics = tm.MetricCollection([RPWError(num_channels=output_shape[2]), RFError(num_channels=output_shape[2]), PSNR(num_channels=output_shape[2])])
 
         self.prefix = ''
         self.denormalize = None
@@ -114,34 +114,34 @@ class Model(LightningModule):
     '''
     def training_step(self, batch, idx):
         #DUAL LOSS OPTIMIZATION
-        (c1, f1), (c2, f2) = batch
-        # c1, f1 = batch
+        # (c1, f1), (c2, f2) = batch
+        # # c1, f1 = batch
 
-        l1 = self.loss_fn(self(c1), f1)
-        l2 = self.loss_fn(self(c2), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True)
+        # l1 = self.loss_fn(self(c1), f1)
+        # l2 = self.loss_fn(self(c2), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True)
 
-        loss = l1 + 2*l2
-        # loss = 5*l2
-        # loss = l1
+        # loss = l1 + 2*l2
+        # # loss = 5*l2
+        # # loss = l1
 
-        self.log('train_loss_1', l1, on_step=True, on_epoch=False, sync_dist=True, batch_size=c1.shape[0])
-        # self.log('train_loss_2', l2, on_step=True, on_epoch=False, sync_dist=True, batch_size=c2.shape[0])
-
-        return loss
-
-        #REGULAR OPTIMIZATION
-        # # coords, features = self.unpack(batch)
-        # coords, features = batch
-
-        # preds = self(coords)
-        # # c, preds = self(coords)
-
-        # loss = self.loss_fn(preds, features)
-        # # loss = self.loss_fn(c, preds, features)
-        # self.log('train_loss', loss, on_step=False, on_epoch=True, sync_dist=True, batch_size=coords.shape[0])
-        # # self.log('train_loss', loss, on_step=True, on_epoch=False, sync_dist=True)
+        # self.log('train_loss_1', l1, on_step=True, on_epoch=False, sync_dist=True, batch_size=c1.shape[0])
+        # # self.log('train_loss_2', l2, on_step=True, on_epoch=False, sync_dist=True, batch_size=c2.shape[0])
 
         # return loss
+
+        #REGULAR OPTIMIZATION
+        # coords, features = self.unpack(batch)
+        coords, features = batch
+
+        preds = self(coords)
+        # c, preds = self(coords)
+
+        loss = self.loss_fn(preds, features)
+        # loss = self.loss_fn(c, preds, features)
+        self.log('train_loss', loss, on_step=False, on_epoch=True, sync_dist=True, batch_size=coords.shape[0])
+        # self.log('train_loss', loss, on_step=True, on_epoch=False, sync_dist=True)
+
+        return loss
 
         #MANUAL OPTIMIZATION
         # coords, features = batch

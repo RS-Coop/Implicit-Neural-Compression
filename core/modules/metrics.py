@@ -17,9 +17,9 @@ from torchmetrics import Metric
 Root Relative Reconstruction (R3) Error.
 
 Input:
-    preds, target: tensors of shape (B, C)
+    preds, target: tensors of shape (T, N, C)
 '''
-def r3error(preds, targets, dim=0):
+def r3error(preds, targets, dim=1):
     assert preds.shape == targets.shape, f"{preds.shape} does not equal {targets.shape}"
 
     n = torch.sum((preds-targets)**2, dim=dim)
@@ -44,9 +44,9 @@ class R3Error(Metric):
         
         err = r3error(preds, targets)
 
-        self.error += err
-        self.max = torch.maximum(err, self.max)
-        self.num_samples += 1
+        self.error += torch.sum(err, dim=0)
+        self.max = torch.maximum(torch.amax(err, dim=0), self.max)
+        self.num_samples += err.shape[0]
 
     def compute(self, reduce_channels=True):
         err = self.error/self.num_samples
@@ -61,7 +61,7 @@ class R3Error(Metric):
 Relative point-wise reconstruction error.
 
 Input:
-    preds, target: tensors of shape (B, C)
+    preds, target: tensors of shape (T, N, C)
 '''
 def rpwerror(preds, targets):
     assert preds.shape == targets.shape, f"{preds.shape} does not equal {targets.shape}"
@@ -87,9 +87,9 @@ class RPWError(Metric):
         
         err = rpwerror(preds, targets)
 
-        self.error += torch.sum(err, dim=0)
-        self.max = torch.maximum(torch.amax(err, dim=0), self.max)
-        self.num_samples += err.shape[0]
+        self.error += torch.sum(err, dim=(0,1))
+        self.max = torch.maximum(torch.amax(err, dim=(0,1)), self.max)
+        self.num_samples += err.shape[0]*err.shape[1]
 
     def compute(self, reduce_channels=False):
         err = self.error/self.num_samples
@@ -117,12 +117,12 @@ class RFError(Metric):
 
     '''
     Input:
-        preds, targets: tensors of shape (B, C)
+        preds, targets: tensors of shape (T, N, C)
     '''
     def update(self, preds: torch.Tensor, targets: torch.Tensor):
         
-        self.N += torch.sum((preds-targets)**2, dim=0)
-        self.D += torch.sum((targets)**2, dim=0)
+        self.N += torch.sum((preds-targets)**2, dim=(0,1))
+        self.D += torch.sum((targets)**2, dim=(0,1))
 
     def compute(self, reduce_channels=False):
         err = torch.sqrt(self.N/self.D)
@@ -137,11 +137,11 @@ class RFError(Metric):
 Peak Signal to Noise Ratio
 
 Input:
-    preds, target: tensors of shape (B, C)
+    preds, target: tensors of shape (T, N, C)
 '''
 def psnr(preds, targets):
-    r = torch.amax(targets, dim=(0))
-    mse = torch.mean((preds-targets)**2, dim=(0))
+    r = torch.amax(targets, dim=(1))
+    mse = torch.mean((preds-targets)**2, dim=(1))
 
     return 10*torch.log10(r**2/mse)
 
@@ -159,8 +159,10 @@ class PSNR(Metric):
 
     def update(self, preds: torch.Tensor, targets: torch.Tensor):
         
-        self.psnr += psnr(preds, targets)
-        self.num_samples += 1
+        val = psnr(preds, targets)
+
+        self.psnr += torch.sum(val, dim=0)
+        self.num_samples += val.shape[0]
 
     def compute(self, reduce_channels=False):
         psnr = self.psnr/self.num_samples

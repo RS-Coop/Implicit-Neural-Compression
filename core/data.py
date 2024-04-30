@@ -157,7 +157,7 @@ class MeshDataset(Dataset):
         else:
             features = self.features[idxs,:,:]
 
-        return torch.flatten(coordinates, end_dim=1), torch.flatten(features, end_dim=1)
+        return coordinates, features
     
     def get_points(self, denormalize=True):
 
@@ -269,11 +269,11 @@ class DataModule(LightningDataModule):
     
     @property
     def input_shape(self):
-        return (1, self.spatial_dim+1)
+        return (1, 1, self.spatial_dim+1)
 
     @property
     def output_shape(self):
-        return (1, len(self.channels))
+        return (1, 1, len(self.channels))
 
     '''
     Load and preprocess data

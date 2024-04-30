@@ -26,7 +26,7 @@ def make_error_plots(trainer, datamodule, model):
     raw = datamodule.predict.get_features()
 
     #build residual
-    error = r3error(data, raw, dim=1)
+    error = r3error(data, raw)
 
     #plot
     fig, ax = plt.subplots(1,1,figsize=(10,10))

@@ -77,13 +77,18 @@ class Siren(nn.Module):
         ):
         super().__init__()
 
+        #network
+        self.net = nn.Sequential()
+
+        #flatten
+        self.net.append(nn.Flatten(start_dim=0, end_dim=1))
+
         #first layer
-        self.first = SineLayer(in_features, hidden_features, is_first=True, omega_0=first_omega_0)
+        self.net.append(SineLayer(in_features, hidden_features, is_first=True, omega_0=first_omega_0))
 
         #blocks
-        self.blocks = nn.Sequential()
         for i in range(blocks):
-            self.blocks.append(SineBlock(hidden_features, omega_0=hidden_omega_0))
+            self.net.append(SineBlock(hidden_features, omega_0=hidden_omega_0))
 
         #last layer
         if outermost_linear:
@@ -96,17 +101,17 @@ class Siren(nn.Module):
         else:
             last = SineLayer(hidden_features, out_features, is_first=False, omega_0=hidden_omega_0)
 
-        self.last = last
-
-    def net(self, input):
-        return self.last(self.blocks(self.first(input)))
+        self.net.append(last)
     
     def forward(self, coords):
         # coords = coords.clone().detach().requires_grad_(True) # allows to take derivative w.r.t. input
         # output = self.net(coords)
         # return coords, output
 
-        return self.net(coords)
+        shape = coords.shape
+        out = self.net(coords)
+
+        return torch.unflatten(out, 0, shape[0:2])
 
 ####################################################################
 
