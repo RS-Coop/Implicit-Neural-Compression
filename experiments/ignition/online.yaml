@@ -28,7 +28,7 @@ model:
   hidden_features: 128
   blocks: 2
   loss_fn: "R3Loss"
-  learning_rate: 0.0005 #float
+  learning_rate: 0.0001 #float
   scheduler: False
 
 #PT LightningDataModule arguments
@@ -36,8 +36,8 @@ data:
   spatial_dim: 2 #int
   points_path: "points.npy" #str
   features_path: "features.npy" #str
-  batch_size: 4 #int
-  channels: [1] #list[int]
+  batch_size: 1 #int
+  channels: [0] #list[int]
   normalize: False #bool
   split: 1.0 #float [0,1]
   shuffle: False #bool
@@ -54,10 +54,11 @@ data:
     #   slide: True #bool
     full:
       window_size: 10
-      cycles: 30
+      cycles: 200
     coarse:
       step: 10
-      cycles: 30
+      cycles: 200
+      batch_size: 32
 
 #Miscellaneous arguments
 misc:

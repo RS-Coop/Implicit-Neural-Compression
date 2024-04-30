@@ -2,6 +2,8 @@
 Online batch sampler
 '''
 
+import random
+
 import numpy as np
 
 import torch
@@ -67,7 +69,7 @@ class Window(Sampler):
 
     def __iter__(self):
 
-        for i in range(len(self)):
+        for i in range(self.T//self.window_size):
             for j in range(self.cycles):
                 yield list(range(i*self.window_size, (i+1)*self.window_size))
 
@@ -76,17 +78,21 @@ class Window(Sampler):
     
 class Queue(Sampler):
 
-    def __init__(self, T, step=8, cycles=1):
+    def __init__(self, T, step=8, cycles=1, batch_size=8):
 
         self.T = T
         self.step = step
         self.cycles = cycles
+        self.batch_size = batch_size
         self.queue = []
 
     def __iter__(self):
-        for i in range(len(self)):
+        for i in range(self.T//self.step):
             for j in range(self.cycles):
-                yield self.queue
+                if len(self.queue) <= self.batch_size:
+                    yield self.queue
+                else:
+                    yield random.sample(self.queue, k=self.batch_size)
             
             self.queue.extend(list(range(i*self.step, (i+1)*self.step)))
 
