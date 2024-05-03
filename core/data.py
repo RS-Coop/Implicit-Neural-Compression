@@ -203,7 +203,7 @@ class CoarseDataset(MeshDataset):
             self.gradients = None
 
         #fill data
-        if self.gradients:
+        if self.gradients != None:
             probs = torch.mean(torch.norm(self.gradients, dim=3), dim=2)
             probs = probs/torch.sum(probs, dim=1)
 
