@@ -25,7 +25,7 @@ def r3error(preds, targets, dim=1):
     n = torch.sum((preds-targets)**2, dim=dim)
     d = torch.sum((targets)**2, dim=dim)
 
-    return torch.sqrt(n/d)
+    return torch.sqrt(n/(d+1e-8))
 
 class R3Error(Metric):
     
@@ -143,7 +143,7 @@ def psnr(preds, targets):
     r = torch.amax(targets, dim=(1))
     mse = torch.mean((preds-targets)**2, dim=(1))
 
-    return 10*torch.log10(r**2/mse)
+    return 10*torch.log10((r**2+1e-8)/mse)
 
 class PSNR(Metric):
 

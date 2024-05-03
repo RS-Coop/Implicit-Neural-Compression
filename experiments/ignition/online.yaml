@@ -36,6 +36,7 @@ data:
   spatial_dim: 2 #int
   points_path: "points.npy" #str
   features_path: "features.npy" #str
+  gradients: True #bool
   batch_size: 1 #int
   channels: [1] #list[int]
   normalize: False #bool

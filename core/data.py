@@ -133,7 +133,8 @@ class MeshDataset(Dataset):
 
         #features
         if self.gradients != None:
-            features = torch.cat((self.features[idx,:,:], self.gradients[idx,:,:]))
+            # features = torch.cat((self.features[idx,:,:], self.gradients[idx,:,:]))
+            features = self.features[idx,:,:]
         else:
             features = self.features[idx,:,:]
 
@@ -153,7 +154,8 @@ class MeshDataset(Dataset):
 
         #features
         if self.gradients != None:
-            features = torch.cat((self.features[idxs,:,:], self.gradients[idxs,:,:]), dim=2)
+            # features = torch.cat((self.features[idxs,:,:], self.gradients[idxs,:,:]), dim=2)
+            features = self.features[idxs,:,:]
         else:
             features = self.features[idxs,:,:]
 
@@ -201,13 +203,23 @@ class CoarseDataset(MeshDataset):
             self.gradients = None
 
         #fill data
-        for i in range(self.num_snapshots):
-            perm = torch.randperm(dataset.num_points)[:self.num_points]
+        if self.gradients:
+            probs = torch.mean(torch.norm(self.gradients, dim=3), dim=2)
+            probs = probs/torch.sum(probs, dim=1)
 
-            self.points[i,:,:] = dataset.points[i,perm,:]
-            self.features[i,:,:] = dataset.features[i,perm,:]
-            if self.gradients:
-                self.gradients[i,:,:] = dataset.gradients[i,perm,:]
+            for i in range(self.num_snapshots):
+                idxs = torch.multinomial(probs[i,:], self.num_points)
+
+                self.points[i,:,:] = dataset.points[i,idxs,:]
+                self.features[i,:,:] = dataset.features[i,idxs,:]
+        else:
+            for i in range(self.num_snapshots):
+                perm = torch.randperm(dataset.num_points)[:self.num_points]
+
+                self.points[i,:,:] = dataset.points[i,perm,:]
+                self.features[i,:,:] = dataset.features[i,perm,:]
+                if self.gradients:
+                    self.gradients[i,:,:] = dataset.gradients[i,perm,:]
 
         return
 
@@ -285,7 +297,7 @@ class DataModule(LightningDataModule):
 
             if self.online:
                 self.train = train_val
-                self.coarse = CoarseDataset(train_val, sample_factor=0.1) if self.buffer['coarse'] else None
+                self.coarse = CoarseDataset(train_val, sample_factor=0.01) if self.buffer['coarse'] else None
 
             else:
                 train_size = round(self.split*len(train_val))
