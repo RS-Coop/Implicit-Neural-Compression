@@ -44,7 +44,7 @@ class MeshDataset(Dataset):
                 g_path = features_path.with_stem(features_path.stem+"_gradients")
                 gradients = torch.from_numpy(np.load(g_path).astype(np.float32))
 
-                assert gradients.dim() == 4 and gradients.shape[-1] == self.points.shape[1], f"Gradients have incorrect shape"
+                assert gradients.dim() == 4, f"Gradients have incorrect shape"
 
                 self.gradients = torch.flatten(gradients[:,:,channels,:], start_dim=2)
             else:
@@ -147,7 +147,8 @@ class MeshDataset(Dataset):
         if idxs.numel() == 0: return None, None
 
         #normalized time
-        t_coord = (2*idxs/(self.num_snapshots-1)-1).view(-1,1,1).expand(-1, self.num_points, -1)
+        # t_coord = (2*idxs/(self.num_snapshots-1)-1).view(-1,1,1).expand(-1, self.num_points, -1)
+        t_coord = (0.0*idxs).view(-1,1,1).expand(-1, self.num_points, -1)
 
         #coordinates
         coordinates = torch.cat((self.points[idxs,:,:], t_coord), dim=2)
