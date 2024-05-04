@@ -38,7 +38,7 @@ data:
   features_path: "features.npy" #str
   gradients: True #bool
   batch_size: 1 #int
-  channels: [1] #list[int]
+  channels: [0,1] #list[int]
   normalize: False #bool
   split: 1.0 #float [0,1]
   shuffle: False #bool

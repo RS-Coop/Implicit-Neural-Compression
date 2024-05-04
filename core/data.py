@@ -46,7 +46,8 @@ class MeshDataset(Dataset):
 
                 assert gradients.dim() == 4, f"Gradients have incorrect shape"
 
-                self.gradients = torch.flatten(gradients[:,:,channels,:], start_dim=2)
+                # self.gradients = torch.flatten(gradients[:,:,channels,:], start_dim=2)
+                self.gradients = gradients
             else:
                 self.gradients = None
 
@@ -133,7 +134,7 @@ class MeshDataset(Dataset):
 
         #features
         if self.gradients != None:
-            features = torch.cat((self.features[idx,:,:], self.gradients[idx,:,:]))
+            features = torch.cat((self.features[idx,:,:], torch.flatten(self.gradients[idx,...], start_dim=2)))
         else:
             features = self.features[idx,:,:]
 
@@ -154,7 +155,7 @@ class MeshDataset(Dataset):
 
         #features
         if self.gradients != None:
-            # features = torch.cat((self.features[idxs,:,:], self.gradients[idxs,:,:]), dim=2)
+            # features = torch.cat((self.features[idxs,:,:], torch.flatten(self.gradients[idxs,...], start_dim=2)), dim=2)
             features = self.features[idxs,:,:]
         else:
             features = self.features[idxs,:,:]
@@ -204,8 +205,8 @@ class CoarseDataset(MeshDataset):
 
         #fill data
         if self.gradients != None:
-            probs = torch.mean(torch.norm(self.gradients, dim=3), dim=2)
-            probs = probs/torch.sum(probs, dim=1)
+            probs = torch.mean(torch.norm(dataset.gradients, dim=3), dim=2)
+            probs = probs/torch.sum(probs, dim=1, keepdim=True)
 
             for i in range(self.num_snapshots):
                 idxs = torch.multinomial(probs[i,:], self.num_points)
