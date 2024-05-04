@@ -197,7 +197,7 @@ class CoarseDataset(MeshDataset):
         #initialize data
         self.points = torch.empty((self.num_snapshots, self.num_points, dataset.points.shape[2]))
         self.features = torch.empty((self.num_snapshots, self.num_points, dataset.features.shape[2]))
-        if dataset.gradients:
+        if dataset.gradients != None:
             self.gradients = torch.empty((self.num_snapshots, self.num_points, dataset.features.shape[2]))
         else:
             self.gradients = None
