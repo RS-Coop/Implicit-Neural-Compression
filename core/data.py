@@ -206,6 +206,7 @@ class CoarseDataset(MeshDataset):
         #fill data
         if self.gradients != None:
             probs = torch.mean(torch.norm(dataset.gradients, dim=3), dim=2)
+            probs += torch.rand_like(probs)*0.25*torch.amax(probs, dim=1, keepdim=True)
             probs = probs/torch.sum(probs, dim=1, keepdim=True)
 
             for i in range(self.num_snapshots):
