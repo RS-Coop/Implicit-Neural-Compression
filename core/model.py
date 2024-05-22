@@ -65,9 +65,9 @@ class Model(LightningModule):
         self.output_activation = getattr(nn, output_activation)()
 
         if inr_type == "siren":
-            self.inr = Siren(input_shape[2], hidden_features, blocks, output_shape[2], outermost_linear=True)
+            self.inr = Siren(input_shape[2], hidden_features, blocks, output_shape[2])
         elif inr_type == "wire":
-            self.inr = Wire(input_shape[2], hidden_features, blocks, output_shape[2], outermost_linear=True)
+            self.inr = Wire(input_shape[2], hidden_features, blocks, output_shape[2])
         else:
             raise Exception(f'Invalid inr_type {inr_type}')
 
