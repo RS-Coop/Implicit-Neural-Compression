@@ -29,18 +29,32 @@ class SineLayer(nn.Module):
         self.is_first = is_first
         
         self.in_features = in_features
+        self.out_features = out_features
         self.linear = nn.Linear(in_features, out_features, bias=bias)
         
-        self.init_weights()
-    
-    def init_weights(self):
-        with torch.no_grad():
-            if self.is_first:
-                r = 1/self.in_features
-            else:
-                r = np.sqrt(6/self.in_features)/self.omega_0
+        self.initialize()
 
-            self.linear.weight.uniform_(-r, r)
+    @property
+    def weight(self):
+        return self.linear.weight
+    
+    @property
+    def bias(self):
+        return self.linear.bias
+    
+    def init_weights(self, m):
+        if self.is_first:
+            r = 1/self.in_features
+        else:
+            r = np.sqrt(6/self.in_features)/self.omega_0
+
+        m.uniform_(-r, r)
+        
+        return
+    
+    def initialize(self):
+        with torch.no_grad():
+            self.init_weights(self.linear.weight)
         
     def forward(self, input):
         return torch.sin(self.omega_0*self.linear(input))
@@ -89,6 +103,7 @@ class Siren(nn.Module):
         #blocks
         for i in range(blocks):
             self.net.append(SineBlock(hidden_features, omega_0=hidden_omega_0))
+            # self.net.append(SineLayer(hidden_features, hidden_features, is_first=False, omega_0=hidden_omega_0))
 
         #last layer
         if outermost_linear:
@@ -102,6 +117,30 @@ class Siren(nn.Module):
             last = SineLayer(hidden_features, out_features, is_first=False, omega_0=hidden_omega_0)
 
         self.net.append(last)
+
+    @property
+    def num_hidden_layers(self):
+        return (len(self.net)-3)
+
+    def get_layers(self):
+        for layer in self.net[2:]:
+            if isinstance(layer, SineBlock):
+                for l in layer.net:
+                    yield l
+            else:
+                yield layer
+            
+        return
+    
+    def activations(self, coords):
+        activations = []
+        out = self.net[:2](coords)
+        activations.append(out)
+        for i in range(2, len(self.net)-1):
+            out = self.net[i](out)
+            activations.append(out)
+        
+        return activations
     
     def forward(self, coords):
         # coords = coords.clone().detach().requires_grad_(True) # allows to take derivative w.r.t. input
@@ -112,26 +151,3 @@ class Siren(nn.Module):
         out = self.net(coords)
 
         return torch.unflatten(out, 0, shape[0:2])
-
-####################################################################
-
-class Sine(nn.Module):
-    def __init(self):
-        super().__init__()
-
-    def forward(self, input):
-        return torch.sin(30 * input)
-
-def sine_init(m):
-    with torch.no_grad():
-        if hasattr(m, 'weight'):
-            num_input = m.weight.size(-1)
-            # See supplement Sec. 1.5 for discussion of factor 30
-            m.weight.uniform_(-np.sqrt(6 / num_input) / 30, np.sqrt(6 / num_input) / 30)
-
-def first_layer_sine_init(m):
-    with torch.no_grad():
-        if hasattr(m, 'weight'):
-            num_input = m.weight.size(-1)
-            # See paper sec. 3.2, final paragraph, and supplement Sec. 1.5 for discussion of factor 30
-            m.weight.uniform_(-1 / num_input, 1 / num_input)

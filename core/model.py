@@ -15,6 +15,8 @@ from .modules.siren import Siren
 from .modules.wire import Wire
 from .modules.loss import R3Loss, RPWLoss, W2Loss
 
+# from .modules.injector import Injector
+
 from .utils.diff_ops import jacobian
 
 '''
@@ -80,6 +82,9 @@ class Model(LightningModule):
         #exact parameter count
         print(f"Exact parameter count: {self.size()}")
 
+        #continual backpro
+        # self.injector = Injector(self.inr, replacement_rate=0.3)
+
         return
     
     def size(self):
@@ -117,6 +122,9 @@ class Model(LightningModule):
         (c1, f1), (c2, f2) = batch
         # c1, f1 = batch
 
+        # if c2 is not None and idx%300==0:
+        #     self.injector(c2) #update CBP parameters and weights
+
         l1 = self.loss_fn(self(c1), f1)
         l2 = self.loss_fn(self(c2), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=l1.device)
 
@@ -130,7 +138,7 @@ class Model(LightningModule):
         return loss
 
         #REGULAR OPTIMIZATION
-        # coords, features = self.unpack(batch)
+        # # coords, features = self.unpack(batch)
         # coords, features = batch
 
         # preds = self(coords)
