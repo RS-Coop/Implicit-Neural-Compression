@@ -127,10 +127,10 @@ class MeshDataset(Dataset):
 
     def __getitem__(self, idx):
         #normalized time
-        t_coord = torch.tensor(2*(idx/(self.num_snapshots-1))-1).expand(self.num_points, 1)
+        t_coord = torch.tensor(idx/(self.num_snapshots-1))
 
         #coordinates
-        coordinates = torch.cat((self.points[idx,:,:], t_coord))
+        x_coord = self.points[idx,:,:]
 
         #features
         if self.gradients != None:
@@ -138,7 +138,7 @@ class MeshDataset(Dataset):
         else:
             features = self.features[idx,:,:]
 
-        return coordinates, features
+        return (t_coord, x_coord), features
     
     
     def __getitems__(self, idxs):
@@ -147,20 +147,19 @@ class MeshDataset(Dataset):
         if idxs.numel() == 0: return None, None
 
         #normalized time
-        t_coord = (2*idxs/(self.num_snapshots-1)-1).view(-1,1,1).expand(-1, self.num_points, -1)
-        # t_coord = (0.0*idxs).view(-1,1,1).expand(-1, self.num_points, -1)
+        # t_coord = (idxs/(self.num_snapshots-1)).view(-1,1)
+        t_coord = (2*idxs/(self.num_snapshots-1)-1).view(-1,1)
 
         #coordinates
-        coordinates = torch.cat((self.points[idxs,:,:], t_coord), dim=2)
+        x_coord = self.points[idxs,:,:]
 
         #features
         if self.gradients != None:
-            # features = torch.cat((self.features[idxs,:,:], torch.flatten(self.gradients[idxs,...], start_dim=2)), dim=2)
-            features = self.features[idxs,:,:]
+            features = torch.cat((self.features[idxs,:,:], torch.flatten(self.gradients[idxs,...], start_dim=2)), dim=2)
         else:
             features = self.features[idxs,:,:]
 
-        return coordinates, features
+        return (t_coord, x_coord), features
     
     def get_points(self, denormalize=True):
 
@@ -283,7 +282,7 @@ class DataModule(LightningDataModule):
     
     @property
     def input_shape(self):
-        return (1, 1, self.spatial_dim+1)
+        return (1, 1, self.spatial_dim)
 
     @property
     def output_shape(self):

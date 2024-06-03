@@ -85,6 +85,7 @@ class Siren(nn.Module):
                  hidden_features,
                  blocks,
                  out_features,
+                 flatten_first=True,
                  outermost_linear=True, 
                  first_omega_0=30, 
                  hidden_omega_0=30
@@ -117,6 +118,10 @@ class Siren(nn.Module):
             last = SineLayer(hidden_features, out_features, is_first=False, omega_0=hidden_omega_0)
 
         self.net.append(last)
+
+    @property
+    def size(self):
+        return sum(p.numel() for p in self.parameters())
 
     @property
     def num_hidden_layers(self):

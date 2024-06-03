@@ -8,7 +8,7 @@ import numpy as np
 import torch
 from pytorch_lightning import Trainer
 
-from core.model import Model
+from core.hyper_model import Model
 from core.data import DataModule
 
 from .utils.gif import make_gif
