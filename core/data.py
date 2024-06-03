@@ -155,7 +155,8 @@ class MeshDataset(Dataset):
 
         #features
         if self.gradients != None:
-            features = torch.cat((self.features[idxs,:,:], torch.flatten(self.gradients[idxs,...], start_dim=2)), dim=2)
+            # features = torch.cat((self.features[idxs,:,:], torch.flatten(self.gradients[idxs,...], start_dim=2)), dim=2)
+            features = self.features[idxs,:,:]
         else:
             features = self.features[idxs,:,:]
 

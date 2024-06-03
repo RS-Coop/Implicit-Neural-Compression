@@ -36,8 +36,8 @@ model:
 data:
   spatial_dim: 2 #int
   points_path: "points.npy" #str
-  features_path: "features_10.npy" #str
-  gradients: False #bool
+  features_path: "features.npy" #str
+  gradients: True #bool
   batch_size: 1 #int
   channels: [1] #list[int]
   normalize: False #bool
@@ -56,10 +56,10 @@ data:
     #   slide: True #bool
     full:
       window_size: 1
-      cycles: 1000
+      cycles: 100
     coarse:
       step: 1
-      cycles: 1000
+      cycles: 100
       batch_size: 10
 
 #Miscellaneous arguments
