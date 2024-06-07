@@ -17,7 +17,7 @@ train:
   enable_progress_bar: True #bool
   # profiler: #str
   limit_val_batches: 0 #bool
-  max_epochs: 100 #int
+  max_epochs: 500 #int
   # max_steps: #int
 
 #Model arguments
@@ -35,11 +35,11 @@ model:
 #PT LightningDataModule arguments
 data:
   spatial_dim: 2 #int
-  points_path: "points.npy" #str
-  features_path: "features.npy" #str
+  points_path: "points_random_5%.npy" #str
+  features_path: "features_random_5%.npy" #str
   gradients: False #bool
   batch_size: 10 #int
-  channels: [1] #list[int]
+  channels: [0,1] #list[int]
   normalize: False #bool
   split: 1.0 #float [0,1]
   shuffle: True #bool
@@ -51,5 +51,5 @@ misc:
   make_gif: False #bool
   make_error_plots: True
   compute_stats: True #bool
-  export: False
+  export: True
   finetune: False

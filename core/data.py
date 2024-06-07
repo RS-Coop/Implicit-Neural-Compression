@@ -244,6 +244,7 @@ class DataModule(LightningDataModule):
             channels,
             gradients = False,
             buffer = None,
+            sample_factor = 0.05,
             data_dir = "./",
             normalize = True,
             split = 0.8,
@@ -299,7 +300,7 @@ class DataModule(LightningDataModule):
 
             if self.online:
                 self.train = train_val
-                self.coarse = CoarseDataset(train_val, sample_factor=0.01) if self.buffer['coarse'] else None
+                self.coarse = CoarseDataset(train_val, sample_factor=self.sample_factor) if self.buffer['coarse'] else None
 
             else:
                 train_size = round(self.split*len(train_val))
