@@ -27,7 +27,7 @@ class Hypernet(nn.Module):
         self.in_features = in_features
 
         #Network
-        self.net = Siren(self.num_freqs, hidden_features, 2, out_features)
+        self.net = Siren(self.num_freqs, hidden_features, 3, out_features)
 
     def initialize(self, target):
         with torch.no_grad():

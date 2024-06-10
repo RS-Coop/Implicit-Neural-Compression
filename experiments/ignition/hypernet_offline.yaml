@@ -17,17 +17,17 @@ train:
   enable_progress_bar: True #bool
   # profiler: #str
   limit_val_batches: 0 #bool
-  max_epochs: 500 #int
+  max_epochs: 3000 #int
   # max_steps: #int
 
 #Model arguments
 model:
-  # ckpt_path: "lightning_logs/ignition/batching/time/version_1/checkpoints/best-epoch=89.ckpt" #str, only use this if you want to continue training model from checkpoint
+  # ckpt_path: "lightning_logs/ignition/hypernet_offline/version_1/checkpoints/last.ckpt" #str, only use this if you want to continue training model from checkpoint
   inr_type: "siren"
   output_activation: "Identity"
-  hidden_features: 32
-  blocks: 2
-  hyper_hidden_features: 10
+  hidden_features: 16
+  blocks: 3
+  hyper_hidden_features: 16
   loss_fn: "R3Loss"
   learning_rate: 0.0001 #float
   scheduler: False
@@ -35,11 +35,11 @@ model:
 #PT LightningDataModule arguments
 data:
   spatial_dim: 2 #int
-  points_path: "points_random_5%.npy" #str
-  features_path: "features_random_5%.npy" #str
+  points_path: "points.npy" #str
+  features_path: "features.npy" #str
   gradients: False #bool
-  batch_size: 10 #int
-  channels: [0,1] #list[int]
+  batch_size: 50 #int
+  channels: [0,1,2,3] #list[int]
   normalize: False #bool
   split: 1.0 #float [0,1]
   shuffle: True #bool
