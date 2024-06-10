@@ -69,6 +69,12 @@ class SineBlock(nn.Module):
         ):
         super().__init__()
 
+        # mid_width = int(width/2)
+
+        # self.net = nn.Sequential(SineLayer(width, mid_width, bias=bias, omega_0=omega_0),
+        #                          SineLayer(mid_width, mid_width, bias=bias, omega_0=omega_0),
+        #                          SineLayer(mid_width, width, bias=bias, omega_0=omega_0))
+        
         self.net = nn.Sequential(SineLayer(width, width, bias=bias, omega_0=omega_0),
                                  SineLayer(width, width, bias=bias, omega_0=omega_0))
 

@@ -38,7 +38,7 @@ data:
   points_path: "points.npy" #str
   features_path: "features.npy" #str
   gradients: True #bool
-  sample_factor: 0.03
+  sample_factor: 0.05
   batch_size: 1 #int
   channels: [0,1] #list[int]
   normalize: False #bool
