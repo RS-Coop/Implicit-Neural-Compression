@@ -112,17 +112,17 @@ class Model(LightningModule):
     '''
     def training_step(self, batch, idx):
         #DUAL LOSS OPTIMIZATION
-        # (c1, f1), (c2, f2) = batch
-        c1, f1 = batch
+        (c1, f1), (c2, f2) = batch
+        # c1, f1 = batch
 
         l1 = self.loss_fn(self(c1), f1)
-        # l2 = self.loss_fn(self(c2), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=l1.device)
+        l2 = self.loss_fn(self(c2), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=l1.device)
 
-        # loss = l1 + l2
-        loss = l1
+        loss = l1 + l2
+        # loss = l1
 
         self.log('train_loss_1', l1, on_step=True, on_epoch=False, sync_dist=True, batch_size=c1[1].shape[0])
-        # self.log('train_loss_2', l2, on_step=True, on_epoch=False, sync_dist=True, batch_size=1)
+        self.log('train_loss_2', l2, on_step=True, on_epoch=False, sync_dist=True, batch_size=1)
 
         return loss
 
