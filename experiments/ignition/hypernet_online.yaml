@@ -28,7 +28,7 @@ model:
   hidden_features: 16
   blocks: 3
   hyper_hidden_features: 16
-  loss_fn: "R3Loss"
+  loss_fn: "L1Loss"
   learning_rate: 0.0001 #float
   scheduler: False
 
@@ -38,7 +38,7 @@ data:
   points_path: "points.npy" #str
   features_path: "features_10.npy" #str
   gradients: False #bool
-  sample_factor: 0.10
+  sample_factor: 0.01
   batch_size: 1 #int
   channels: [0,1] #list[int]
   normalize: False #bool
@@ -57,10 +57,10 @@ data:
     #   slide: True #bool
     full:
       window_size: 1
-      cycles: 500
+      cycles: 4000
     coarse:
       step: 1
-      cycles: 500
+      cycles: 4000
       batch_size: 10
 
 #Miscellaneous arguments
