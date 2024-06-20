@@ -147,8 +147,8 @@ class MeshDataset(Dataset):
         if idxs.numel() == 0: return None, None
 
         #normalized time
-        t_coord = (2*idxs/(self.num_snapshots-1)-1).view(-1,1,1).expand(-1, self.num_points, -1)
-        # t_coord = (0.0*idxs).view(-1,1,1).expand(-1, self.num_points, -1)
+        # t_coord = (2*idxs/(self.num_snapshots-1)-1).view(-1,1,1).expand(-1, self.num_points, -1)
+        t_coord = (0.0*idxs).view(-1,1,1).expand(-1, self.num_points, -1)
 
         #coordinates
         coordinates = torch.cat((self.points[idxs,:,:], t_coord), dim=2)
