@@ -13,7 +13,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader, random_split
 from pytorch_lightning import LightningDataModule
 from pytorch_lightning.utilities.combined_loader import CombinedLoader
-from .modules.sampler import Buffer, Window, Queue
+from .modules.sampler import Buffer
 
 '''
 '''
@@ -22,6 +22,7 @@ class MeshDataset(Dataset):
             points_path,
             features_path,
             channels,
+            time_span,
             channels_last = True,
             normalize = True,
             gradients = False
@@ -120,38 +121,27 @@ class MeshDataset(Dataset):
         self.num_points = self.points.shape[1]
         self.num_snapshots = self.features.shape[0]
 
+        if self.num_snapshots%time_span != 0: warn("Number of training snapshots not evenly divisible by time span!")
+        self.time_span = time_span
+
         return
 
     def __len__(self):
-        return self.num_snapshots
-
-    def __getitem__(self, idx):
-        #normalized time
-        t_coord = torch.tensor(idx/(self.num_snapshots-1))
-
-        #coordinates
-        x_coord = self.points[idx,:,:]
-
-        #features
-        if self.gradients != None:
-            features = torch.cat((self.features[idx,:,:], torch.flatten(self.gradients[idx,...], start_dim=2)))
-        else:
-            features = self.features[idx,:,:]
-
-        return (t_coord, x_coord), features
-    
+        return self.num_snapshots//self.time_span
     
     def __getitems__(self, idxs):
         if isinstance(idxs, list): idxs = torch.tensor(idxs)
 
         if idxs.numel() == 0: return None, None
 
+        #convert window idxs to snapshot idxs
+        idxs = torch.stack([torch.arange(idx*self.time_span, (idx+1)*self.time_span) for idx in idxs])
+
         #normalized time
-        # t_coord = (idxs/(self.num_snapshots-1)).view(-1,1)
-        t_coord = (2*idxs/(self.num_snapshots-1)-1).view(-1,1)
+        t_coord = (2*idxs/(self.num_snapshots-1)-1)
 
         #coordinates
-        x_coord = self.points[idxs,:,:]
+        xt_coord = torch.cat((self.points[idxs,:,:], t_coord.view(*t_coord.shape,1,1).expand(-1, -1, self.num_points, -1)), dim=3)
 
         #features
         if self.gradients != None:
@@ -160,7 +150,7 @@ class MeshDataset(Dataset):
         else:
             features = self.features[idxs,:,:]
 
-        return (t_coord, x_coord), features
+        return (t_coord, xt_coord), torch.flatten(features, start_dim=0, end_dim=1)
     
     def get_points(self, denormalize=True):
 
@@ -194,6 +184,7 @@ class CoarseDataset(MeshDataset):
         #hyper-parameters
         self.num_points = round(sample_factor*dataset.num_points)
         self.num_snapshots = dataset.num_snapshots
+        self.time_span = dataset.time_span
 
         #initialize data
         self.points = torch.empty((self.num_snapshots, self.num_points, dataset.points.shape[2]))
@@ -242,9 +233,10 @@ class DataModule(LightningDataModule):
             features_path,
             batch_size,
             channels,
+            time_span,
             gradients = False,
             buffer = None,
-            sample_factor = 0.05,
+            sample_factor = 0.01,
             data_dir = "./",
             normalize = True,
             split = 0.8,
@@ -284,7 +276,7 @@ class DataModule(LightningDataModule):
     
     @property
     def input_shape(self):
-        return (1, 1, self.spatial_dim)
+        return (1, self.time_span), (1, 1, self.spatial_dim+1)
 
     @property
     def output_shape(self):
@@ -296,7 +288,7 @@ class DataModule(LightningDataModule):
     def setup(self, stage=None):
         if (stage == "fit" or stage is None) and (self.train is None or self.val is None):
             #load dataset
-            train_val = MeshDataset(self.points_path, self.features_path, self.channels, normalize=self.normalize, gradients=self.gradients)
+            train_val = MeshDataset(self.points_path, self.features_path, self.channels, self.time_span, normalize=self.normalize, gradients=self.gradients)
 
             if self.online:
                 self.train = train_val
@@ -310,11 +302,11 @@ class DataModule(LightningDataModule):
 
         if (stage == "test" or stage is None) and self.test is None:
             #load dataset
-            self.test = MeshDataset(self.points_path, self.features_path, self.channels, normalize=self.normalize, gradients=False)
+            self.test = MeshDataset(self.points_path, self.features_path, self.channels, self.time_span, normalize=self.normalize, gradients=False)
 
         if (stage == "predict" or stage is None) and self.predict is None:
             #load dataset
-            self.predict = MeshDataset(self.points_path, self.features_path, self.channels, normalize=self.normalize, gradients=False)
+            self.predict = MeshDataset(self.points_path, self.features_path, self.channels, self.time_span, normalize=self.normalize, gradients=False)
 
         if stage not in ["fit", "test", "predict", None]:
             raise ValueError("Stage must be one of fit, test, predict")
@@ -328,14 +320,14 @@ class DataModule(LightningDataModule):
         if self.online:
 
             full_loader = DataLoader(self.train,
-                                        batch_sampler=Window(self.train.num_snapshots, **self.buffer['full']),
+                                        batch_sampler=Buffer(self.train.num_snapshots//self.time_span, **self.buffer['full']),
                                         num_workers=self.num_workers*self.trainer.num_devices,
                                         persistent_workers=self.persistent_workers,
                                         pin_memory=self.pin_memory,
                                         collate_fn=lambda x: x)
             if self.buffer['coarse']:
                 coarse_loader = DataLoader(self.coarse,
-                                            batch_sampler=Queue(self.train.num_snapshots, **self.buffer['coarse']),
+                                            batch_sampler=Buffer(self.train.num_snapshots//self.time_span, **self.buffer['coarse'], delay=True),
                                             num_workers=self.num_workers*self.trainer.num_devices,
                                             persistent_workers=self.persistent_workers,
                                             pin_memory=self.pin_memory,

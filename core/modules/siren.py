@@ -91,7 +91,6 @@ class Siren(nn.Module):
                  hidden_features,
                  blocks,
                  out_features,
-                 flatten_first=True,
                  outermost_linear=True, 
                  first_omega_0=30, 
                  hidden_omega_0=30
@@ -102,7 +101,7 @@ class Siren(nn.Module):
         self.net = nn.Sequential()
 
         #flatten
-        self.net.append(nn.Flatten(start_dim=0, end_dim=1))
+        self.net.append(nn.Flatten(start_dim=0, end_dim=-2))
 
         #first layer
         self.net.append(SineLayer(in_features, hidden_features, is_first=True, omega_0=first_omega_0))
@@ -161,4 +160,4 @@ class Siren(nn.Module):
         shape = coords.shape
         out = self.net(coords)
 
-        return torch.unflatten(out, 0, shape[0:2])
+        return torch.unflatten(out, 0, shape[0:-1])
