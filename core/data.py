@@ -276,7 +276,7 @@ class DataModule(LightningDataModule):
     
     @property
     def input_shape(self):
-        return (1, self.time_span), (1, 1, self.spatial_dim+1)
+        return (1, self.time_span), (1, 1, 1, self.spatial_dim+1)
 
     @property
     def output_shape(self):
@@ -333,7 +333,7 @@ class DataModule(LightningDataModule):
                                             pin_memory=self.pin_memory,
                                             collate_fn=lambda x: x)
 
-                return CombinedLoader((full_loader, coarse_loader), mode='max_size_cycle')
+                return CombinedLoader({"fine": full_loader, "coarse": coarse_loader}, mode='max_size_cycle')
             
             else:
                 return full_loader

@@ -68,7 +68,7 @@ class Model(LightningModule):
 
         hypernet_kwargs["in_features"] = hypernet_input_shape[1]
 
-        inr_kwargs["in_features"] = inr_input_shape[2]
+        inr_kwargs["in_features"] = inr_input_shape[3]
         inr_kwargs["out_features"] = output_shape[2]
 
         self.hyper_inr = HyperINR(hypernet_kwargs, inr_kwargs)
@@ -93,10 +93,10 @@ class Model(LightningModule):
         return sum(p.numel() for p in self.hyper_inr.hypernet.parameters())
     
     def unpack(self, batch):
-        if isinstance(batch[1], tuple):
-            return batch
+        if isinstance(batch, dict):
+            return batch["fine"], batch["coarse"]
         else:
-            return (batch[0], batch[1]), (None, None)
+            return batch, (None, None)
 
     '''
     [Optional] A forward eavaluation of the network.
