@@ -4,7 +4,7 @@
 #Documentation: https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
 #Comment out options you aren't using
 train:
-  accelerator: "gpu" #str e.g. "gpu"
+  accelerator: "cpu" #str e.g. "gpu"
   devices: "auto" #int
   # num_nodes: #int
   # strategy: #str
@@ -14,7 +14,7 @@ train:
   default_root_dir: "./lightning_logs" #str
   logger: True #bool
   log_every_n_steps: 1 #int
-  enable_progress_bar: False #bool
+  enable_progress_bar: True #bool
   # profiler: #str
   limit_val_batches: 0 #bool
   max_epochs: 1 #int
@@ -30,7 +30,7 @@ model:
   inr_kwargs:
     hidden_features: 16
     blocks: 3
-  loss_fn: "L1Loss"
+  loss_fn: "R3Loss"
   learning_rate: 0.0001 #float
   scheduler: False
 
@@ -39,8 +39,8 @@ data:
   spatial_dim: 2 #int
   points_path: "points.npy" #str
   features_path: "features.npy" #str
-  time_span: 10 #int
-  gradients: False #bool
+  time_span: 1 #int
+  gradients: True #bool
   sample_factor: 0.01
   batch_size: 1 #int
   channels: [0,1] #list[int]
@@ -50,13 +50,13 @@ data:
   buffer:
     full:
       size: 1 #int
-      cycles: 3000 #int
+      cycles: 200 #int
       batch_size: 1 #int
       step: 1 #int
     coarse:
       size: -1 #int
-      cycles: 3000 #int
-      batch_size: 3 #int
+      cycles: 200 #int
+      batch_size: 50 #int
       step: 1 #bool
 
 #Miscellaneous arguments

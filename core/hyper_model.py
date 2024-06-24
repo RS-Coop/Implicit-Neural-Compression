@@ -114,21 +114,21 @@ class Model(LightningModule):
     '''
     def training_step(self, batch, idx):
 
-        if idx%3000 == 0:
-            self.checkpoint()
+        # if idx%3000 == 0:
+        #     self.checkpoint()
 
         (c1, f1), (c2, f2) = self.unpack(batch)
 
         l1 = self.loss_fn(self(c1), f1)
-        # l2 = self.loss_fn(self(c2), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=l1.device) #coarse loss
-        l3 = self.compute_reg(c2[0]) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=l1.device) #hypernet output loss
+        l2 = self.loss_fn(self(c2), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=l1.device) #coarse loss
+        # l3 = self.compute_reg(c2[0]) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=l1.device) #hypernet output loss
 
-        # loss = l1 + l2
-        loss = l1 + 10*l3
+        loss = l1 + 2*l2
+        # loss = l1 + 10*l3
 
         self.log('train_loss_1', l1, on_step=True, on_epoch=False, sync_dist=True, batch_size=c1[1].shape[0])
-        # self.log('train_loss_2', l2, on_step=True, on_epoch=False, sync_dist=True, batch_size=1)
-        self.log('train_loss_3', l3, on_step=True, on_epoch=False, sync_dist=True, batch_size=1)
+        self.log('train_loss_2', l2, on_step=True, on_epoch=False, sync_dist=True, batch_size=1)
+        # self.log('train_loss_3', l3, on_step=True, on_epoch=False, sync_dist=True, batch_size=1)
 
         return loss
 
