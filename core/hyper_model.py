@@ -96,7 +96,7 @@ class Model(LightningModule):
         if isinstance(batch, dict):
             return batch["fine"], batch["coarse"]
         else:
-            return batch, (None, None)
+            return batch, (None, None, None)
 
     '''
     [Optional] A forward eavaluation of the network.
@@ -117,10 +117,10 @@ class Model(LightningModule):
         # if idx%3000 == 0:
         #     self.checkpoint()
 
-        (c1, f1), (c2, f2) = self.unpack(batch)
+        (c1, f1), (c2, f2, s) = self.unpack(batch)
 
         l1 = self.loss_fn(self(c1), f1)
-        l2 = self.loss_fn(self(c2), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=l1.device) #coarse loss
+        l2 = self.loss_fn(self.sketch(self(c2),s), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=l1.device) #coarse loss
         # l3 = self.compute_reg(c2[0]) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=l1.device) #hypernet output loss
 
         loss = l1 + 2*l2
@@ -260,6 +260,11 @@ class Model(LightningModule):
         self.hypernet_checkpoint = copy.deepcopy(self.hyper_inr.hypernet)
 
         return
+    
+    def sketch(self, f, s):
+        sf = torch.einsum('tnc,tnr->trc', f.reshape(s.shape[0], s.shape[1], -1), s)
+
+        return sf
     
     def compute_reg(self, t):
 

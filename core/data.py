@@ -182,39 +182,44 @@ class CoarseDataset(MeshDataset):
         ):
 
         #hyper-parameters
-        self.num_points = round(sample_factor*dataset.num_points)
+        self.num_points = dataset.num_points
+        self.rank = round(sample_factor*dataset.num_points)
         self.num_snapshots = dataset.num_snapshots
         self.time_span = dataset.time_span
 
         #initialize data
-        self.points = torch.empty((self.num_snapshots, self.num_points, dataset.points.shape[2]))
-        self.features = torch.empty((self.num_snapshots, self.num_points, dataset.features.shape[2]))
-        if dataset.gradients != None:
-            self.gradients = torch.empty((self.num_snapshots, self.num_points, dataset.features.shape[2]))
-        else:
-            self.gradients = None
+        self.points = dataset.points
+        self.features = torch.empty((self.num_snapshots, self.rank, dataset.features.shape[2]))
 
-        #fill data
-        if self.gradients != None:
-            probs = torch.mean(torch.norm(dataset.gradients, dim=3), dim=2)
-            probs += torch.rand_like(probs)*0.25*torch.amax(probs, dim=1, keepdim=True)
-            probs = probs/torch.sum(probs, dim=1, keepdim=True)
+        #Sketch
+        self.sketch = torch.randn(self.num_snapshots, self.num_points, self.rank)
 
-            for i in range(self.num_snapshots):
-                idxs = torch.multinomial(probs[i,:], self.num_points)
-
-                self.points[i,:,:] = dataset.points[i,idxs,:]
-                self.features[i,:,:] = dataset.features[i,idxs,:]
-        else:
-            for i in range(self.num_snapshots):
-                perm = torch.randperm(dataset.num_points)[:self.num_points]
-
-                self.points[i,:,:] = dataset.points[i,perm,:]
-                self.features[i,:,:] = dataset.features[i,perm,:]
-                if self.gradients:
-                    self.gradients[i,:,:] = dataset.gradients[i,perm,:]
+        #Apply sketch
+        self.features = torch.einsum('tnc,tnr->trc', dataset.features, self.sketch)
 
         return
+    
+    def __getitems__(self, idxs):
+        if isinstance(idxs, list): idxs = torch.tensor(idxs)
+
+        if idxs.numel() == 0: return None, None, None
+
+        #convert window idxs to snapshot idxs
+        idxs = torch.stack([torch.arange(idx*self.time_span, (idx+1)*self.time_span) for idx in idxs])
+
+        #normalized time
+        t_coord = (2*idxs/(self.num_snapshots-1)-1)
+
+        #coordinates
+        xt_coord = torch.cat((self.points[idxs,:,:], t_coord.view(*t_coord.shape,1,1).expand(-1, -1, self.num_points, -1)), dim=3)
+
+        #features
+        features = self.features[idxs,:,:]
+
+        #sketch
+        sketch = self.sketch[idxs,:,:]
+
+        return (t_coord, xt_coord), torch.flatten(features, start_dim=0, end_dim=1), torch.flatten(sketch, start_dim=0, end_dim=1)
 
 #################################################
 
