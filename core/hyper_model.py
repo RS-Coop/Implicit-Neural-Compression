@@ -93,10 +93,10 @@ class Model(LightningModule):
         return sum(p.numel() for p in self.hyper_inr.hypernet.parameters())
     
     def unpack(self, batch):
-        if isinstance(batch, dict):
-            return batch["fine"], batch["coarse"]
-        else:
-            return batch, (None, None, None)
+        fine = batch.get("fine", (None, None))
+        coarse = batch.get("coarse", (None, None, None))
+
+        return fine, coarse
 
     '''
     [Optional] A forward eavaluation of the network.
@@ -119,15 +119,15 @@ class Model(LightningModule):
 
         (c1, f1), (c2, f2, s) = self.unpack(batch)
 
-        l1 = self.loss_fn(self(c1), f1)
-        l2 = self.loss_fn(self.sketch(self(c2),s), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=l1.device) #coarse loss
+        l1 = self.loss_fn(self(c1), f1) if c1 is not None else torch.tensor([0.0], requires_grad=True, device=self.device)
+        l2 = self.loss_fn(self.sketch(self(c2),s), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #coarse loss
         # l3 = self.compute_reg(c2[0]) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=l1.device) #hypernet output loss
 
         loss = l1 + 2*l2
         # loss = l1 + 10*l3
 
-        self.log('train_loss_1', l1, on_step=True, on_epoch=False, sync_dist=True, batch_size=c1[1].shape[0])
-        self.log('train_loss_2', l2, on_step=True, on_epoch=False, sync_dist=True, batch_size=1)
+        self.log('train_loss_1', l1, on_step=True, on_epoch=False, sync_dist=True, batch_size=f1.shape[0] if f1 is not None else 1)
+        self.log('train_loss_2', l2, on_step=True, on_epoch=False, sync_dist=True, batch_size=f2.shape[0] if f2 is not None else 1)
         # self.log('train_loss_3', l3, on_step=True, on_epoch=False, sync_dist=True, batch_size=1)
 
         return loss
@@ -255,16 +255,16 @@ class Model(LightningModule):
     Hypernetwork direct regularization
     '''
 
+    def sketch(self, f, s):
+        sf = torch.einsum('tnc,tnr->trc', f.reshape(s.shape[0], s.shape[1], -1), s)
+
+        return sf
+
     def checkpoint(self):
         
         self.hypernet_checkpoint = copy.deepcopy(self.hyper_inr.hypernet)
 
         return
-    
-    def sketch(self, f, s):
-        sf = torch.einsum('tnc,tnr->trc', f.reshape(s.shape[0], s.shape[1], -1), s)
-
-        return sf
     
     def compute_reg(self, t):
 
