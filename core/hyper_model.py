@@ -117,10 +117,10 @@ class Model(LightningModule):
         # if idx%3000 == 0:
         #     self.checkpoint()
 
-        (c1, f1), (c2, f2, s) = self.unpack(batch)
+        (c1, f1), (c2, f2, sketch) = self.unpack(batch)
 
         l1 = self.loss_fn(self(c1), f1) if c1 is not None else torch.tensor([0.0], requires_grad=True, device=self.device)
-        l2 = self.loss_fn(self.sketch(self(c2),s), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #coarse loss
+        l2 = self.loss_fn(sketch(self(c2)), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #coarse loss
         # l3 = self.compute_reg(c2[0]) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=l1.device) #hypernet output loss
 
         loss = l1 + 2*l2

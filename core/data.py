@@ -191,11 +191,15 @@ class CoarseDataset(MeshDataset):
         self.points = dataset.points
         self.features = torch.empty((self.num_snapshots, self.rank, dataset.features.shape[2]))
 
-        #Sketch
-        self.sketch = torch.randn(self.num_snapshots, self.num_points, self.rank)
+        #Sketching seeds and sketch features
+        #NOTE: I think this isn't ideal, but there are some issues trying to generate seeds other ways
+        self.seeds = torch.randint(100000, (self.num_snapshots,))
 
-        #Apply sketch
-        self.features = torch.einsum('tnc,tnr->trc', dataset.features, self.sketch)
+        for i in range(self.num_snapshots):
+            torch.manual_seed(self.seeds[i])
+            sketch = torch.randn(self.num_points, self.rank)
+
+            self.features[i,:,:] = torch.einsum('nc,nr->rc', dataset.features[i,:,:], sketch)
 
         return
     
@@ -216,10 +220,20 @@ class CoarseDataset(MeshDataset):
         #features
         features = self.features[idxs,:,:]
 
-        #sketch
-        sketch = self.sketch[idxs,:,:]
+        #sketch function
+        def sketch(f):
+            f = f.reshape(idxs.shape[0], self.num_points, -1)
+            sf = torch.empty(idxs.shape[0], self.rank, f.shape[-1])
 
-        return (t_coord, xt_coord), torch.flatten(features, start_dim=0, end_dim=1), torch.flatten(sketch, start_dim=0, end_dim=1)
+            for i, idx in enumerate(idxs):
+                torch.manual_seed(self.seeds[idx])
+                sketch = torch.randn(self.num_points, self.rank)
+
+                sf[i,:,:] = torch.einsum('nc,nr->rc', self.features[idx,:,:], sketch) 
+
+            return sf
+
+        return (t_coord, xt_coord), torch.flatten(features, start_dim=0, end_dim=1), sketch
 
 #################################################
 
