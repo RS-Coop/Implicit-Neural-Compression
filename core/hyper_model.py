@@ -117,10 +117,10 @@ class Model(LightningModule):
         # if idx%3000 == 0:
         #     self.checkpoint()
 
-        (c1, f1), (c2, f2, sketch) = self.unpack(batch)
+        (c1, f1), (c2, f2, s) = self.unpack(batch)
 
         l1 = self.loss_fn(self(c1), f1) if c1 is not None else torch.tensor([0.0], requires_grad=True, device=self.device)
-        l2 = self.loss_fn(sketch(self(c2)), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #coarse loss
+        l2 = self.loss_fn(self.sketch(self(c2), s), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #coarse loss
         # l3 = self.compute_reg(c2[0]) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=l1.device) #hypernet output loss
 
         loss = l1 + 2*l2
@@ -252,14 +252,27 @@ class Model(LightningModule):
         return
     
     '''
-    Hypernetwork direct regularization
+    Sketching
     '''
-
     def sketch(self, f, s):
-        sf = torch.einsum('tnc,tnr->trc', f.reshape(s.shape[0], s.shape[1], -1), s)
+        seeds, rank = s
+
+        f = torch.unflatten(f, 0, (seeds.shape[0], -1))
+        sf = torch.empty(seeds.shape[0], rank, f.shape[-1])
+
+        num_points = f.shape[1]
+
+        for i, seed in enumerate(seeds):
+            torch.manual_seed(seed)
+            sketch = torch.randn(num_points, rank)
+
+            sf[i,:,:] = torch.einsum('nc,nr->rc', f[i,:,:], sketch) 
 
         return sf
-
+    
+    '''
+    Hypernetwork direct regularization
+    '''
     def checkpoint(self):
         
         self.hypernet_checkpoint = copy.deepcopy(self.hyper_inr.hypernet)

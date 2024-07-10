@@ -220,20 +220,7 @@ class CoarseDataset(MeshDataset):
         #features
         features = self.features[idxs,:,:]
 
-        #sketch function
-        def sketch(f):
-            f = f.reshape(idxs.shape[0], self.num_points, -1)
-            sf = torch.empty(idxs.shape[0], self.rank, f.shape[-1])
-
-            for i, idx in enumerate(idxs):
-                torch.manual_seed(self.seeds[idx])
-                sketch = torch.randn(self.num_points, self.rank)
-
-                sf[i,:,:] = torch.einsum('nc,nr->rc', self.features[idx,:,:], sketch) 
-
-            return sf
-
-        return (t_coord, xt_coord), torch.flatten(features, start_dim=0, end_dim=1), sketch
+        return (t_coord, xt_coord), torch.flatten(features, start_dim=0, end_dim=1), (self.seeds[idxs], self.rank)
 
 #################################################
 
