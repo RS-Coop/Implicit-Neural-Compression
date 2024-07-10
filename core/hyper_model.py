@@ -256,15 +256,15 @@ class Model(LightningModule):
     '''
     def sketch(self, f, s):
         seeds, rank = s
-
-        f = torch.unflatten(f, 0, (seeds.shape[0], -1))
-        sf = torch.empty(seeds.shape[0], rank, f.shape[-1])
-
         num_points = f.shape[1]
+
+        seeds = seeds.reshape(-1)
+
+        sf = torch.empty(seeds.shape[0], rank, f.shape[-1], device=self.device)
 
         for i, seed in enumerate(seeds):
             torch.manual_seed(seed)
-            sketch = torch.randn(num_points, rank)
+            sketch = torch.randn(num_points, rank, device=self.device)
 
             sf[i,:,:] = torch.einsum('nc,nr->rc', f[i,:,:], sketch) 
 
