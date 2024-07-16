@@ -260,15 +260,20 @@ class Model(LightningModule):
 
         seeds = seeds.reshape(-1)
 
-        sf = torch.empty(seeds.shape[0], rank, f.shape[-1], requires_grad=True, device=self.device)
+        # sf = torch.empty(seeds.shape[0], rank, f.shape[-1], requires_grad=True, device=self.device)
+
+        sf = []
 
         for i, seed in enumerate(seeds):
             torch.manual_seed(seed)
             sketch = torch.randn(num_points, rank, device=self.device)
 
-            sf[i,:,:] = torch.einsum('nc,nr->rc', f[i,:,:], sketch) 
+            # sf[i,:,:] = torch.einsum('nc,nr->rc', f[i,:,:], sketch)
 
-        return sf
+            sf.append(torch.einsum('nc,nr->rc', f[i,:,:], sketch))
+
+        # return sf
+        return torch.stack(sf)
     
     '''
     Hypernetwork direct regularization
