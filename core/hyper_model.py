@@ -260,7 +260,7 @@ class Model(LightningModule):
 
         seeds = seeds.reshape(-1)
 
-        sf = torch.empty(seeds.shape[0], rank, f.shape[-1], device=self.device)
+        sf = torch.empty(seeds.shape[0], rank, f.shape[-1], requires_grad=True, device=self.device)
 
         for i, seed in enumerate(seeds):
             torch.manual_seed(seed)
