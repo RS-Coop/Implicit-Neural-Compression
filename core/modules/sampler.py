@@ -32,7 +32,7 @@ class Buffer(Sampler):
         self.buffer = deque(maxlen=self.size)
 
         #Length
-        self.length = self.T//self.step + self.T%self.size
+        self.length = self.T//self.step + self.T%self.size - 1*self.delay
 
         return
 

@@ -263,7 +263,7 @@ class Model(LightningModule):
         # sf = torch.empty(seeds.shape[0], rank, f.shape[-1], requires_grad=True, device=self.device)
 
         sf = []
-        print("Model: ", seeds)
+
         for i, seed in enumerate(seeds):
             torch.manual_seed(seed)
             sketch = torch.randn(num_points, rank, device=self.device)
