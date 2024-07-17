@@ -40,6 +40,7 @@ class Buffer(Sampler):
         delay = self.delay
 
         #iterate over snapshots
+        #NOTE: I wrote the following loop but am a bit confused by it
         for i, _ in zip(range(0, self.T+self.size, self.step), range(self.length)):
 
             if delay:

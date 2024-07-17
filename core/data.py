@@ -200,13 +200,14 @@ class CoarseDataset(MeshDataset):
             sketch = torch.randn(self.num_points, self.rank)
 
             self.features[i,:,:] = torch.einsum('nc,nr->rc', dataset.features[i,:,:], sketch)
-
+        print(self.seeds)
         return
     
     def __getitems__(self, idxs):
         if isinstance(idxs, list): idxs = torch.tensor(idxs)
 
-        if idxs.numel() == 0: return None, None, None
+        if idxs.numel() == 0:
+            return None, None, None
 
         #convert window idxs to snapshot idxs
         idxs = torch.stack([torch.arange(idx*self.time_span, (idx+1)*self.time_span) for idx in idxs])
@@ -219,6 +220,7 @@ class CoarseDataset(MeshDataset):
 
         #features
         features = self.features[idxs,:,:]
+        # print("Dataloader: ", self.seeds[idxs])
 
         return (t_coord, xt_coord), torch.flatten(features, start_dim=0, end_dim=1), (self.seeds[idxs], self.rank)
 
