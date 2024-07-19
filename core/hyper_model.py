@@ -266,7 +266,8 @@ class Model(LightningModule):
 
         for i, seed in enumerate(seeds):
             torch.manual_seed(seed)
-            sketch = torch.randn(num_points, rank, device=self.device)
+            # sketch = torch.randn(num_points, rank, device=self.device)
+            sketch = torch.randn(num_points, rank, device='cpu').to(self.device)
 
             # sf[i,:,:] = torch.einsum('nc,nr->rc', f[i,:,:], sketch)
 

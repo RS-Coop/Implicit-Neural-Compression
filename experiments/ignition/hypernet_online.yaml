@@ -4,7 +4,7 @@
 #Documentation: https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
 #Comment out options you aren't using
 train:
-  accelerator: "gpu" #str e.g. "gpu"
+  accelerator: "auto" #str e.g. "gpu"
   devices: "auto" #int
   # num_nodes: #int
   # strategy: #str
