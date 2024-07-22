@@ -91,15 +91,10 @@ class Model(LightningModule):
         return sum(p.numel() for p in self.parameters())
     
     def unpack(self, batch):
-        if isinstance(batch[0], tuple):
-            (c1, f1), (c2, f2) = batch
+        fine = batch.get("fine", (None, None))
+        coarse = batch.get("coarse", (None, None, None))
 
-            c = torch.cat((c1, c2))
-            f = torch.cat((f1, f2))
-        else:
-            c, f = batch
-
-        return c, f
+        return fine, coarse
 
     '''
     [Optional] A forward eavaluation of the network.
@@ -118,54 +113,21 @@ class Model(LightningModule):
         torch loss
     '''
     def training_step(self, batch, idx):
-        #DUAL LOSS OPTIMIZATION
-        (c1, f1), (c2, f2) = batch
-        # c1, f1 = batch
+
+        (c1, f1), (c2, f2, s) = self.unpack(batch)
 
         # if c2 is not None and idx%300==0:
         #     self.injector(c2) #update CBP parameters and weights
 
-        l1 = self.loss_fn(self(c1), f1)
-        l2 = self.loss_fn(self(c2), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=l1.device)
+        l1 = self.loss_fn(self(c1), f1) if c1 is not None else torch.tensor([0.0], requires_grad=True, device=self.device)
+        l2 = self.loss_fn(self.sketch(self(c2), s), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #coarse loss
 
-        loss = l1 + l2
-        # loss = 5*l2
-        # loss = l1
+        loss = l1 + 2*l2
 
-        self.log('train_loss_1', l1, on_step=True, on_epoch=False, sync_dist=True, batch_size=c1.shape[0])
-        # self.log('train_loss_2', l2, on_step=True, on_epoch=False, sync_dist=True, batch_size=c2.shape[0])
+        self.log('train_loss_1', l1, on_step=True, on_epoch=False, sync_dist=True, batch_size=f1.shape[0] if f1 is not None else 1)
+        self.log('train_loss_2', l2, on_step=True, on_epoch=False, sync_dist=True, batch_size=f2.shape[0] if f2 is not None else 1)
 
         return loss
-
-        #REGULAR OPTIMIZATION
-        # # coords, features = self.unpack(batch)
-        # coords, features = batch
-
-        # preds = self(coords)
-        # # c, preds = self(coords)
-
-        # loss = self.loss_fn(preds, features)
-        # # loss = self.loss_fn(c, preds, features)
-        # self.log('train_loss', loss, on_step=False, on_epoch=True, sync_dist=True, batch_size=coords.shape[0])
-        # # self.log('train_loss', loss, on_step=True, on_epoch=False, sync_dist=True)
-
-        # return loss
-
-        #MANUAL OPTIMIZATION
-        # coords, features = batch
-
-        # opt = self.optimizers()
-
-        # def closure():
-        #     c, preds = self.inr(coords)
-        #     loss = self.loss_fn(c, preds, features)
-        #     opt.zero_grad()
-        #     self.log('train_loss', loss, on_step=True, on_epoch=False, sync_dist=True)
-        #     self.manual_backward(loss)
-
-        # for i in range(5): opt.step(closure)
-
-        # return
 
     '''
     [Optional] A single validation step.
@@ -295,3 +257,22 @@ class Model(LightningModule):
         # state_dict = checkpoint["state_dict"]
 
         return
+    
+    '''
+    Sketching
+    '''
+    def sketch(self, f, s):
+        seeds, rank = s
+        num_points = f.shape[1]
+
+        seeds = seeds.reshape(-1)
+
+        sf = []
+
+        for i, seed in enumerate(seeds):
+            torch.manual_seed(seed)
+            sketch = torch.randn(num_points, rank, device='cpu').to(self.device)
+
+            sf.append(torch.einsum('nc,nr->rc', f[i,:,:], sketch))
+
+        return torch.stack(sf)

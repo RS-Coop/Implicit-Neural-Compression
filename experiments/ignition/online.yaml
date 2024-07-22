@@ -4,7 +4,7 @@
 #Documentation: https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
 #Comment out options you aren't using
 train:
-  accelerator: "cpu" #str e.g. "gpu"
+  accelerator: "auto" #str e.g. "gpu"
   devices: "auto" #int
   # num_nodes: #int
   # strategy: #str
@@ -14,7 +14,7 @@ train:
   default_root_dir: "./lightning_logs" #str
   logger: True #bool
   log_every_n_steps: 1 #int
-  enable_progress_bar: True #bool
+  enable_progress_bar: False #bool
   # profiler: #str
   limit_val_batches: 0 #bool
   max_epochs: 1 #int
@@ -27,7 +27,7 @@ model:
   output_activation: "Identity"
   hidden_features: 128
   blocks: 2
-  loss_fn: "L1Loss"
+  loss_fn: "R3Loss"
   learning_rate: 0.0001 #float
   scheduler: False
 
@@ -37,35 +37,36 @@ data:
   points_path: "points.npy" #str
   features_path: "features.npy" #str
   gradients: False #bool
+  sample_factor: 0.01
   batch_size: 1 #int
   channels: [0,1] #list[int]
   normalize: False #bool
   split: 1.0 #float [0,1]
   shuffle: False #bool
   buffer:
-    # full:
-    #   size: 16 #int
-    #   cycles: 1 #int
-    #   batch_size: 16 #int
-    #   slide: True #bool
+    # fine:
+    #   size: 1 #int
+    #   cycles: 200 #int
+    #   batch_size: 1 #int
+    #   step: 1 #int
     # coarse:
     #   size: -1 #int
-    #   cycles: 1 #int
-    #   batch_size: 64 #int
-    #   slide: True #bool
-    full:
-      window_size: 5
-      cycles: 300
+    #   cycles: 200 #int
+    #   batch_size: 10 #int
+    #   step: 1 #bool
+    #   delay: True #bool
     coarse:
-      step: 5
-      cycles: 300
-      batch_size: 15
+      size: -1 #int
+      cycles: 5000 #int
+      batch_size: 50 #int
+      step: 450 #bool
+      delay: False #bool
 
 #Miscellaneous arguments
 misc:
   early_stopping: False #bool
-  make_gif: False #bool
+  make_gif: True #bool
   make_error_plots: True
   compute_stats: True #bool
-  export: False
+  export: True
   finetune: False

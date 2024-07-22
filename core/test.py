@@ -8,7 +8,7 @@ import numpy as np
 import torch
 from pytorch_lightning import Trainer
 
-from core.hyper_model import Model
+from core.model import Model
 from core.data import DataModule
 
 from .utils.gif import make_gif
@@ -77,20 +77,6 @@ def test(log_dir, config):
         data = datamodule.predict.denorm_f(data)
         
         np.save(f'{trainer.logger.log_dir}/reconstruction.npy', data.numpy())
-
-    if misc_args.get('export_hnet'):
-        p = []
-        datamodule.setup("predict")
-        with torch.inference_mode():
-            for coords, _ in datamodule.predict_dataloader():
-                t = coords[0]
-
-                for t_batch in t:
-                    params = model.hyper_inr.hypernet(t_batch)
-
-                    p.append(model.hyper_inr.format(params))
-
-        torch.save(p, f'{trainer.logger.log_dir}/hypernet_output')
 
     return
 

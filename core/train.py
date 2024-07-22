@@ -9,7 +9,7 @@ import torch
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 
-from core.hyper_model import Model
+from core.model import Model
 from core.data import DataModule
 
 from .utils.utils import Logger, FineTuner
