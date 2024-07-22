@@ -61,15 +61,31 @@ class HyperINR(nn.Module):
             c_idx = n_idx
 
         return state
+    
+    def _forward(self, t, xt):
+        params = self.hypernet(t)
 
-    def forward(self, t, xt):
-        out = []
+        return torch.func.functional_call(self.inr, self.format(params), xt)
+    
+    def forward(self, t_batch, xt_batch):
+        out = torch.vmap(self._forward)(t_batch, xt_batch)
+
+        return torch.flatten(out, start_dim=0, end_dim=1)
+    
+    # def inr_forward(self, p, coords):
+    #     return torch.func.functional_call(self.inr, coords)
+    
+    # def forward(self, t, xt):
+    #     torch.vmap(self.inr_forward)
+
+    # def forward(self, t, xt):
+    #     out = []
         
-        for i, t_batch in enumerate(t):
-            params = self.hypernet(t_batch)
+    #     for i, t_batch in enumerate(t):
+    #         params = self.hypernet(t_batch)
 
-            y = torch.func.functional_call(self.inr, self.format(params), xt[i,...])
+    #         y = torch.func.functional_call(self.inr, self.format(params), xt[i,...])
 
-            out.append(y)
+    #         out.append(y)
 
-        return torch.cat(out)
+    #     return torch.cat(out)

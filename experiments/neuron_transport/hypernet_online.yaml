@@ -14,7 +14,7 @@ train:
   default_root_dir: "./lightning_logs" #str
   logger: True #bool
   log_every_n_steps: 1 #int
-  enable_progress_bar: False #bool
+  enable_progress_bar: True #bool
   # profiler: #str
   limit_val_batches: 0 #bool
   max_epochs: 1 #int
@@ -56,7 +56,7 @@ data:
     coarse:
       size: -1 #int
       cycles: 200 #int
-      batch_size: 10 #int
+      batch_size: 2 #int
       step: 1 #bool
       delay: True #bool
 

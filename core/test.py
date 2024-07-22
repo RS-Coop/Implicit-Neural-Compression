@@ -15,6 +15,8 @@ from .utils.gif import make_gif
 from .utils.plots import make_error_plots
 from .utils.utils import Logger
 
+import json
+
 def test(log_dir, config):
 
     #Extract args
@@ -70,11 +72,25 @@ def test(log_dir, config):
         with torch.inference_mode():
             data = trainer.predict(model=model, datamodule=datamodule)
 
-        data = torch.cat(data).reshape(datamodule.predict.num_snapshots, -1, datamodule.output_shape[1])
+        data = torch.cat(data).reshape(datamodule.predict.num_snapshots, -1, datamodule.output_shape[2])
 
         data = datamodule.predict.denorm_f(data)
         
         np.save(f'{trainer.logger.log_dir}/reconstruction.npy', data.numpy())
+
+    if misc_args.get('export_hnet'):
+        p = []
+        datamodule.setup("predict")
+        with torch.inference_mode():
+            for coords, _ in datamodule.predict_dataloader():
+                t = coords[0]
+
+                for t_batch in t:
+                    params = model.hyper_inr.hypernet(t_batch)
+
+                    p.append(model.hyper_inr.format(params))
+
+        torch.save(p, f'{trainer.logger.log_dir}/hypernet_output')
 
     return
 
