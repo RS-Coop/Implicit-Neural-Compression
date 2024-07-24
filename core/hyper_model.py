@@ -254,6 +254,20 @@ class Model(LightningModule):
     '''
     Sketching
     '''
+    # def _sketch(self, f, seed):
+    #     # torch.manual_seed(seed)
+    #     sketch = torch.randn(self.num_points, self.rank, device='cpu').to(self.device)
+
+    #     return torch.einsum('nc,nr->rc', f, sketch)
+
+    # def sketch(self, f, s):
+    #     seeds, self.rank = s
+    #     self.num_points = f.shape[1]
+
+    #     seeds = seeds.reshape(-1)
+
+    #     return torch.vmap(self._sketch, randomness="different")(f, seeds)
+
     def sketch(self, f, s):
         seeds, rank = s
         num_points = f.shape[1]
