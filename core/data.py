@@ -13,7 +13,10 @@ import torch
 from torch.utils.data import Dataset, DataLoader, random_split
 from pytorch_lightning import LightningDataModule
 from pytorch_lightning.utilities.combined_loader import CombinedLoader
+
 from .modules.sampler import Buffer
+
+from core.utils.sketch import sketch
 
 '''
 '''
@@ -187,19 +190,14 @@ class CoarseDataset(MeshDataset):
         self.num_snapshots = dataset.num_snapshots
         self.time_span = dataset.time_span
 
-        #initialize data
+        #Initialize data
         self.points = dataset.points
-        self.features = torch.empty((self.num_snapshots, self.rank, dataset.features.shape[2]))
 
         #Sketching seeds and sketch features
         #NOTE: I think this isn't ideal, but there are some issues trying to generate seeds other ways
         self.seeds = torch.randint(100000, (self.num_snapshots,))
 
-        for i in range(self.num_snapshots):
-            torch.manual_seed(self.seeds[i])
-            sketch = torch.randn(self.num_points, self.rank)
-
-            self.features[i,:,:] = torch.einsum('nc,nr->rc', dataset.features[i,:,:], sketch)
+        self.features = sketch(dataset.features, (self.seeds, self.rank))
 
         return
     

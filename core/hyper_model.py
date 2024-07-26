@@ -17,6 +17,7 @@ from core.modules.loss import R3Loss, RPWLoss, W2Loss
 
 from core.modules.hypernet import HyperINR
 
+from core.utils.sketch import sketch
 from core.utils.diff_ops import jacobian
 
 '''
@@ -120,7 +121,7 @@ class Model(LightningModule):
         (c1, f1), (c2, f2, s) = self.unpack(batch)
 
         l1 = self.loss_fn(self(c1), f1) if c1 is not None else torch.tensor([0.0], requires_grad=True, device=self.device)
-        l2 = self.loss_fn(self.sketch(self(c2), s), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #coarse loss
+        l2 = self.loss_fn(sketch(self(c2), s, device=self.device), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #coarse loss
         # l3 = self.compute_reg(c2[0]) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=l1.device) #hypernet output loss
 
         loss = l1 + 2*l2
@@ -250,45 +251,6 @@ class Model(LightningModule):
                     state_dict.pop(key)
 
         return
-    
-    '''
-    Sketching
-    '''
-    # def _sketch(self, f, seed):
-    #     # torch.manual_seed(seed)
-    #     sketch = torch.randn(self.num_points, self.rank, device='cpu').to(self.device)
-
-    #     return torch.einsum('nc,nr->rc', f, sketch)
-
-    # def sketch(self, f, s):
-    #     seeds, self.rank = s
-    #     self.num_points = f.shape[1]
-
-    #     seeds = seeds.reshape(-1)
-
-    #     return torch.vmap(self._sketch, randomness="different")(f, seeds)
-
-    def sketch(self, f, s):
-        seeds, rank = s
-        num_points = f.shape[1]
-
-        seeds = seeds.reshape(-1)
-
-        # sf = torch.empty(seeds.shape[0], rank, f.shape[-1], requires_grad=True, device=self.device)
-
-        sf = []
-
-        for i, seed in enumerate(seeds):
-            torch.manual_seed(seed)
-            # sketch = torch.randn(num_points, rank, device=self.device)
-            sketch = torch.randn(num_points, rank, device='cpu').to(self.device)
-
-            # sf[i,:,:] = torch.einsum('nc,nr->rc', f[i,:,:], sketch)
-
-            sf.append(torch.einsum('nc,nr->rc', f[i,:,:], sketch))
-
-        # return sf
-        return torch.stack(sf)
     
     '''
     Hypernetwork direct regularization

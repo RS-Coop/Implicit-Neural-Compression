@@ -42,8 +42,11 @@ def test(log_dir, config):
     #Build trainer
     logger = Logger(save_dir=log_dir, name='', version='', default_hp_metric=False)
 
-    trainer_args['logger'] = logger
+    trainer_args["logger"] = logger
     trainer_args["devices"] = 1
+    
+    if "profiler" in trainer_args.keys():
+        trainer_args.pop("profiler")
 
     if "strategy" in trainer_args.keys():
         trainer_args.pop("strategy")
