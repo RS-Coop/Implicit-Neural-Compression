@@ -8,7 +8,7 @@ from importlib import import_module
 import torch
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
-from lightning.pytorch.profilers import AdvancedProfiler
+from pytorch_lightning.profilers import AdvancedProfiler
 
 from core.hyper_model import Model
 from core.data import DataModule
