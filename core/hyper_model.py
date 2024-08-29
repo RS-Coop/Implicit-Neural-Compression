@@ -86,10 +86,11 @@ class Model(LightningModule):
         self.hypernet_checkpoint = None
 
         #exact parameter count
-        print(f"Exact parameter count: {self.size()}")
+        print(f"Exact parameter count: {self.size}")
 
         return
     
+    @property
     def size(self):
         return sum(p.numel() for p in self.hyper_inr.hypernet.parameters())
     

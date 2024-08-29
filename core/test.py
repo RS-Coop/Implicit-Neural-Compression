@@ -62,6 +62,8 @@ def test(log_dir, config):
 
         with torch.inference_mode():
             trainer.test(model=model, datamodule=datamodule)
+        
+        print("Compression Factor", datamodule.test.size/model.size)
 
     #make error plots
     if misc_args.get("make_error_plots"):

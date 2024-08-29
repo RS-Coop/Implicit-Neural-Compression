@@ -128,6 +128,10 @@ class MeshDataset(Dataset):
         self.time_span = time_span
 
         return
+    
+    @property
+    def size(self):
+        return self.features.numel()
 
     def __len__(self):
         return self.num_snapshots//self.time_span
