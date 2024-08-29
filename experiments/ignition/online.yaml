@@ -25,8 +25,8 @@ model:
   # ckpt_path: "lightning_logs/ignition/batching/time/version_1/checkpoints/best-epoch=89.ckpt" #str, only use this if you want to continue training model from checkpoint
   inr_type: "siren"
   output_activation: "Identity"
-  hidden_features: 128
-  blocks: 2
+  hidden_features: 64
+  blocks: 3
   loss_fn: "R3Loss"
   learning_rate: 0.0001 #float
   scheduler: False
@@ -37,30 +37,30 @@ data:
   points_path: "points.npy" #str
   features_path: "features.npy" #str
   gradients: False #bool
-  sample_factor: 0.01
+  sample_factor: 0.02
   batch_size: 1 #int
   channels: [0,1] #list[int]
   normalize: False #bool
   split: 1.0 #float [0,1]
   shuffle: False #bool
   buffer:
-    # fine:
-    #   size: 1 #int
-    #   cycles: 200 #int
-    #   batch_size: 1 #int
-    #   step: 1 #int
-    # coarse:
-    #   size: -1 #int
-    #   cycles: 200 #int
-    #   batch_size: 10 #int
-    #   step: 1 #bool
-    #   delay: True #bool
+    fine:
+      size: 1 #int
+      cycles: 250 #int
+      batch_size: 1 #int
+      step: 1 #int
     coarse:
       size: -1 #int
-      cycles: 5000 #int
+      cycles: 250 #int
       batch_size: 50 #int
-      step: 450 #bool
-      delay: False #bool
+      step: 1 #bool
+      delay: True #bool
+    # coarse:
+    #   size: -1 #int
+    #   cycles: 5000 #int
+    #   batch_size: 50 #int
+    #   step: 450 #bool
+    #   delay: False #bool
 
 #Miscellaneous arguments
 misc:

@@ -11,14 +11,13 @@
 #ntasks-per-node should match num_gpus
 #cpus-per-task per node should be num_workers per gpu
 
-TEST=ignition/hypernet_online
+TEST=ignition/online
 TIME=00:03:00:00
 PYTHON=/projects/cosi1728/software/anaconda/envs/compression/bin/python
 
 DATA_DIR=data/ignition
 cp -r $DATA_DIR/points.npy $SLURM_SCRATCH
 cp -r $DATA_DIR/features.npy $SLURM_SCRATCH
-cp -r $DATA_DIR/features_gradients.npy $SLURM_SCRATCH
 
 module purge
 module load anaconda

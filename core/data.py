@@ -121,6 +121,10 @@ class MeshDataset(Dataset):
         self.num_snapshots = self.features.shape[0]
 
         return
+    
+    @property
+    def size(self):
+        return self.features.numel()
 
     def __len__(self):
         return self.num_snapshots

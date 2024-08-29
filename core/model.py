@@ -80,13 +80,14 @@ class Model(LightningModule):
         self.denormalize = None
 
         #exact parameter count
-        print(f"Exact parameter count: {self.size()}")
+        print(f"Exact parameter count: {self.size}")
 
         #continual backpro
         # self.injector = Injector(self.inr, replacement_rate=0.3)
 
         return
     
+    @property
     def size(self):
         return sum(p.numel() for p in self.parameters())
     
