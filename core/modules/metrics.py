@@ -139,9 +139,9 @@ Peak Signal to Noise Ratio
 Input:
     preds, target: tensors of shape (T, N, C)
 '''
-def psnr(preds, targets):
-    r = torch.amax(targets, dim=(1))
-    mse = torch.mean((preds-targets)**2, dim=(1))
+def psnr(preds, targets, dim=1):
+    r = torch.amax(targets, dim=dim)
+    mse = torch.mean((preds-targets)**2, dim=dim)
 
     return 10*torch.log10((r**2+1e-8)/mse)
 

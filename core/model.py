@@ -124,7 +124,7 @@ class Model(LightningModule):
         l1 = self.loss_fn(self(c1), f1) if c1 is not None else torch.tensor([0.0], requires_grad=True, device=self.device)
         l2 = self.loss_fn(sketch(self(c2), s, device=self.device), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #sketch loss
 
-        loss = l1 + 2*l2
+        loss = l1 + l2
 
         self.log('train_loss_1', l1, on_step=True, on_epoch=False, sync_dist=True, batch_size=f1.shape[0] if f1 is not None else 1)
         self.log('train_loss_2', l2, on_step=True, on_epoch=False, sync_dist=True, batch_size=f2.shape[0] if f2 is not None else 1)
