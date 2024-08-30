@@ -37,21 +37,21 @@ data:
   points_path: "points.npy" #str
   features_path: "features.npy" #str
   gradients: False #bool
-  sample_factor: 0.02
+  sample_factor: 0.05
   batch_size: 1 #int
   channels: [0,1] #list[int]
   normalize: False #bool
   split: 1.0 #float [0,1]
   shuffle: False #bool
   buffer:
-    fine:
+    full:
       size: 1 #int
-      cycles: 250 #int
+      cycles: 200 #int
       batch_size: 1 #int
       step: 1 #int
-    coarse:
+    sketch:
       size: -1 #int
-      cycles: 250 #int
+      cycles: 200 #int
       batch_size: 50 #int
       step: 1 #bool
       delay: True #bool

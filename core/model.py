@@ -17,6 +17,7 @@ from .modules.loss import R3Loss, RPWLoss, W2Loss
 
 # from .modules.injector import Injector
 
+from .utils.sketch import sketch
 from .utils.diff_ops import jacobian
 
 '''
@@ -92,10 +93,10 @@ class Model(LightningModule):
         return sum(p.numel() for p in self.parameters())
     
     def unpack(self, batch):
-        fine = batch.get("fine", (None, None))
-        coarse = batch.get("coarse", (None, None, None))
+        full = batch.get("full", (None, None))
+        sketch = batch.get("sketch", (None, None, None))
 
-        return fine, coarse
+        return full, sketch
 
     '''
     [Optional] A forward eavaluation of the network.
@@ -121,7 +122,7 @@ class Model(LightningModule):
         #     self.injector(c2) #update CBP parameters and weights
 
         l1 = self.loss_fn(self(c1), f1) if c1 is not None else torch.tensor([0.0], requires_grad=True, device=self.device)
-        l2 = self.loss_fn(self.sketch(self(c2), s), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #coarse loss
+        l2 = self.loss_fn(sketch(self(c2), s, device=self.device), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #sketch loss
 
         loss = l1 + 2*l2
 
@@ -258,22 +259,3 @@ class Model(LightningModule):
         # state_dict = checkpoint["state_dict"]
 
         return
-    
-    '''
-    Sketching
-    '''
-    def sketch(self, f, s):
-        seeds, rank = s
-        num_points = f.shape[1]
-
-        seeds = seeds.reshape(-1)
-
-        sf = []
-
-        for i, seed in enumerate(seeds):
-            torch.manual_seed(seed)
-            sketch = torch.randn(num_points, rank, device='cpu').to(self.device)
-
-            sf.append(torch.einsum('nc,nr->rc', f[i,:,:], sketch))
-
-        return torch.stack(sf)
