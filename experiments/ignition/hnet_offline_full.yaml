@@ -33,7 +33,7 @@ model:
   loss_fn: "R3Loss"
   learning_rate: 0.0001 #float
   scheduler: False
-  sketch_type: "fjlt"
+  # sketch_type:
 
 #PT LightningDataModule arguments
 data:
@@ -43,24 +43,24 @@ data:
   time_span: 1 #int
   gradients: False #bool
   sample_factor: 0.05
-  sketch_type: "fjlt"
+  # sketch_type:
   batch_size: 1 #int
   channels: [0,1] #list[int]
   normalize: False #bool
   split: 1.0 #float [0,1]
   shuffle: True #bool
   buffer:
-    full: null
-      # size: -1
-      # cycles: 5000
-      # batch_size: 15
-      # step: 450
-    sketch: # null
-      size: -1 #int
-      cycles: 5000 #int
-      batch_size: 20 #int
-      step: 450 #bool
-      delay: False #bool
+    full: # null
+      size: -1
+      cycles: 5000
+      batch_size: 15
+      step: 450
+    sketch: null
+    #   size: -1 #int
+    #   cycles: 5000 #int
+    #   batch_size: 20 #int
+    #   step: 450 #bool
+    #   delay: False #bool
 
 #Miscellaneous arguments
 misc:
