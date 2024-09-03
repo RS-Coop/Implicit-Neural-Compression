@@ -180,12 +180,13 @@ class MeshDataset(Dataset):
 #################################################
 
 '''
-Create a coarse version of the given dataset by randomly sub-sampling.
+Create a sketch version of the given dataset by randomly sub-sampling.
 '''
-class CoarseDataset(MeshDataset):
+class SketchDataset(MeshDataset):
     def __init__(self,
             dataset,
-            sample_factor
+            sample_factor,
+            sketch_type
         ):
 
         #hyper-parameters
@@ -201,7 +202,7 @@ class CoarseDataset(MeshDataset):
         #NOTE: I think this isn't ideal, but there are some issues trying to generate seeds other ways
         self.seeds = torch.randint(100000, (self.num_snapshots,))
 
-        self.features = sketch(dataset.features, (self.seeds, self.rank))
+        self.features = sketch(dataset.features, (self.seeds, self.rank), sketch_type=sketch_type)
 
         return
     
@@ -246,6 +247,7 @@ class DataModule(LightningDataModule):
             gradients = False,
             buffer = None,
             sample_factor = 0.01,
+            sketch_type = "fjlt",
             data_dir = "./",
             normalize = True,
             split = 0.8,
@@ -301,7 +303,7 @@ class DataModule(LightningDataModule):
 
             if self.online:
                 self.train = train_val
-                self.coarse = CoarseDataset(train_val, sample_factor=self.sample_factor) if self.buffer['coarse'] else None
+                self.sketch = SketchDataset(train_val, sample_factor=self.sample_factor, sketch_type=self.sketch_type) if self.buffer['sketch'] else None
 
             else:
                 train_size = round(self.split*len(train_val))
@@ -330,25 +332,25 @@ class DataModule(LightningDataModule):
 
             loaders = dict()
 
-            if self.buffer.get("fine"):
-                fine_loader = DataLoader(self.train,
-                                            batch_sampler=Buffer(self.train.num_snapshots//self.time_span, **self.buffer['fine']),
+            if self.buffer.get("full"):
+                full_loader = DataLoader(self.train,
+                                            batch_sampler=Buffer(self.train.num_snapshots//self.time_span, **self.buffer['full']),
                                             num_workers=self.num_workers*self.trainer.num_devices,
                                             persistent_workers=self.persistent_workers,
                                             pin_memory=self.pin_memory,
                                             collate_fn=lambda x: x)
                 
-                loaders["fine"] = fine_loader
+                loaders["full"] = full_loader
 
-            if self.buffer.get("coarse"):
-                coarse_loader = DataLoader(self.coarse,
-                                            batch_sampler=Buffer(self.train.num_snapshots//self.time_span, **self.buffer['coarse']),
+            if self.buffer.get("sketch"):
+                sketch_loader = DataLoader(self.sketch,
+                                            batch_sampler=Buffer(self.train.num_snapshots//self.time_span, **self.buffer['sketch']),
                                             num_workers=self.num_workers*self.trainer.num_devices,
                                             persistent_workers=self.persistent_workers,
                                             pin_memory=self.pin_memory,
                                             collate_fn=lambda x: x)
                 
-                loaders["coarse"] = coarse_loader
+                loaders["sketch"] = sketch_loader
 
             return CombinedLoader(loaders, mode='max_size_cycle')
 

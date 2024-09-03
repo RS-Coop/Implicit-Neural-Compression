@@ -38,6 +38,7 @@ class Model(LightningModule):
             learning_rate = 1e-4,
             scheduler = False,
             output_activation = "Identity",
+            sketch_type = "fjlt"
         ):
         super().__init__()
 
@@ -82,6 +83,9 @@ class Model(LightningModule):
         self.prefix = ''
         self.denormalize = None
 
+        #Sketch type
+        self.sketch_type = sketch_type
+
         #Hypernetwork checkpoint
         self.hypernet_checkpoint = None
 
@@ -95,10 +99,10 @@ class Model(LightningModule):
         return sum(p.numel() for p in self.hyper_inr.hypernet.parameters())
     
     def unpack(self, batch):
-        fine = batch.get("fine", (None, None))
-        coarse = batch.get("coarse", (None, None, None))
+        full = batch.get("full", (None, None))
+        sketch = batch.get("sketch", (None, None, None))
 
-        return fine, coarse
+        return full, sketch
 
     '''
     [Optional] A forward eavaluation of the network.
@@ -116,21 +120,23 @@ class Model(LightningModule):
     '''
     def training_step(self, batch, idx):
 
-        # if idx%3000 == 0:
+        # if idx%200 == 0:
+        #     print("CHECKPOINTING")
         #     self.checkpoint()
 
         (c1, f1), (c2, f2, s) = self.unpack(batch)
 
         l1 = self.loss_fn(self(c1), f1) if c1 is not None else torch.tensor([0.0], requires_grad=True, device=self.device)
-        l2 = self.loss_fn(sketch(self(c2), s, device=self.device), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #coarse loss
+        l2 = self.loss_fn(sketch(self(c2), s, sketch_type=self.sketch_type, device=self.device), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #sketch loss
         # l3 = self.compute_reg(c2[0]) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=l1.device) #hypernet output loss
 
-        loss = l1 + 2*l2
+        loss = l1 + l2
         # loss = l1 + 10*l3
+        # loss = l1+l2+l3
 
         self.log('train_loss_1', l1, on_step=True, on_epoch=False, sync_dist=True, batch_size=f1.shape[0] if f1 is not None else 1)
         self.log('train_loss_2', l2, on_step=True, on_epoch=False, sync_dist=True, batch_size=f2.shape[0] if f2 is not None else 1)
-        # self.log('train_loss_3', l3, on_step=True, on_epoch=False, sync_dist=True, batch_size=1)
+        # self.log('train_loss_3', l3, on_step=True, on_epoch=False, sync_dist=True, batch_size=f2.shape[0] if f2 is not None else 1)
 
         return loss
 
