@@ -89,8 +89,14 @@ class Model(LightningModule):
         #Hypernetwork checkpoint
         self.hypernet_checkpoint = None
 
-        #exact parameter count
+        #Exact parameter count
         print(f"Exact parameter count: {self.size}")
+
+        #Loss dependent updates
+        self.automatic_optimization = False
+
+        self.compute = True
+        self.loss_threshold = 0.01
 
         return
     
@@ -120,25 +126,39 @@ class Model(LightningModule):
     '''
     def training_step(self, batch, idx):
 
-        # if idx%200 == 0:
+        if idx%200 == 0:
+            self.compute = True
         #     print("CHECKPOINTING")
         #     self.checkpoint()
 
-        (c1, f1), (c2, f2, s) = self.unpack(batch)
+        if self.compute:
 
-        l1 = self.loss_fn(self(c1), f1) if c1 is not None else torch.tensor([0.0], requires_grad=True, device=self.device)
-        l2 = self.loss_fn(sketch(self(c2), s, sketch_type=self.sketch_type, device=self.device), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #sketch loss
-        # l3 = self.compute_reg(c2[0]) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=l1.device) #hypernet output loss
+            (c1, f1), (c2, f2, s) = self.unpack(batch)
 
-        loss = l1 + l2
-        # loss = l1 + 10*l3
-        # loss = l1+l2+l3
+            l1 = self.loss_fn(self(c1), f1) if c1 is not None else torch.tensor([0.0], requires_grad=True, device=self.device)
+            l2 = self.loss_fn(sketch(self(c2), s, sketch_type=self.sketch_type, device=self.device), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #sketch loss
+            # l3 = self.compute_reg(c2[0]) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=l1.device) #hypernet output loss
 
-        self.log('train_loss_1', l1, on_step=True, on_epoch=False, sync_dist=True, batch_size=f1.shape[0] if f1 is not None else 1)
-        self.log('train_loss_2', l2, on_step=True, on_epoch=False, sync_dist=True, batch_size=f2.shape[0] if f2 is not None else 1)
-        # self.log('train_loss_3', l3, on_step=True, on_epoch=False, sync_dist=True, batch_size=f2.shape[0] if f2 is not None else 1)
+            loss = l1 + l2
+            # loss = l1 + 10*l3
+            # loss = l1 + l2 + l3
 
-        return loss
+            self.log('train_loss_1', l1, on_step=True, on_epoch=False, sync_dist=True, batch_size=f1.shape[0] if f1 is not None else 1)
+            self.log('train_loss_2', l2, on_step=True, on_epoch=False, sync_dist=True, batch_size=f2.shape[0] if f2 is not None else 1)
+            # self.log('train_loss_3', l3, on_step=True, on_epoch=False, sync_dist=True, batch_size=f2.shape[0] if f2 is not None else 1)
+
+            if l1 <= self.loss_threshold:
+                print("Below threshold...")
+                self.compute = False
+                return
+
+            opt = self.optimizers()
+            opt.zero_grad()
+            self.manual_backward(loss)
+            opt.step()
+
+        # return loss
+        return
 
     '''
     [Optional] A single validation step.
