@@ -17,6 +17,7 @@ from core.modules.loss import R3Loss, RPWLoss, W2Loss
 
 from core.modules.hypernet import HyperINR
 
+from core.utils.sketch import sketch
 from core.utils.diff_ops import jacobian
 
 '''
@@ -33,10 +34,13 @@ class Model(LightningModule):
             output_shape,
             hypernet_kwargs,
             inr_kwargs,
+            cycles,
             loss_fn = "R3Error",
             learning_rate = 1e-4,
             scheduler = False,
             output_activation = "Identity",
+            sketch_type = None,
+            loss_threshold = 1e-2
         ):
         super().__init__()
 
@@ -81,22 +85,33 @@ class Model(LightningModule):
         self.prefix = ''
         self.denormalize = None
 
+        #Sketch type
+        self.sketch_type = sketch_type
+
         #Hypernetwork checkpoint
         self.hypernet_checkpoint = None
 
-        #exact parameter count
-        print(f"Exact parameter count: {self.size()}")
+        #Exact parameter count
+        print(f"Exact parameter count: {self.size}")
+
+        #Loss dependent updates
+        self.automatic_optimization = False
+
+        self.compute = True
+        self.loss_threshold = loss_threshold
+        self.cycles = cycles
 
         return
     
+    @property
     def size(self):
         return sum(p.numel() for p in self.hyper_inr.hypernet.parameters())
     
     def unpack(self, batch):
-        fine = batch.get("fine", (None, None))
-        coarse = batch.get("coarse", (None, None, None))
+        full = batch.get("full", (None, None))
+        sketch = batch.get("sketch", (None, None, None))
 
-        return fine, coarse
+        return full, sketch
 
     '''
     [Optional] A forward eavaluation of the network.
@@ -114,23 +129,41 @@ class Model(LightningModule):
     '''
     def training_step(self, batch, idx):
 
-        # if idx%3000 == 0:
+        if idx%self.cycles == 0:
+            self.compute = True
+        #     print("CHECKPOINTING")
         #     self.checkpoint()
 
-        (c1, f1), (c2, f2, s) = self.unpack(batch)
+        if self.compute:
 
-        l1 = self.loss_fn(self(c1), f1) if c1 is not None else torch.tensor([0.0], requires_grad=True, device=self.device)
-        l2 = self.loss_fn(self.sketch(self(c2), s), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #coarse loss
-        # l3 = self.compute_reg(c2[0]) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=l1.device) #hypernet output loss
+            (c1, f1), (c2, f2, s) = self.unpack(batch)
 
-        loss = l1 + 2*l2
-        # loss = l1 + 10*l3
+            l1 = self.loss_fn(self(c1), f1) if c1 is not None else torch.tensor([0.0], requires_grad=True, device=self.device)
+            l2 = self.loss_fn(sketch(self(c2), s, sketch_type=self.sketch_type, device=self.device), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #sketch loss
+            # l3 = self.compute_reg(c2[0]) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=l1.device) #hypernet output loss
 
-        self.log('train_loss_1', l1, on_step=True, on_epoch=False, sync_dist=True, batch_size=f1.shape[0] if f1 is not None else 1)
-        self.log('train_loss_2', l2, on_step=True, on_epoch=False, sync_dist=True, batch_size=f2.shape[0] if f2 is not None else 1)
-        # self.log('train_loss_3', l3, on_step=True, on_epoch=False, sync_dist=True, batch_size=1)
+            loss = l1 + l2
+            # loss = l1 + 10*l3
+            # loss = l1 + l2 + l3
 
-        return loss
+            self.log('train_loss_1', l1, on_step=True, on_epoch=False, sync_dist=True, batch_size=f1.shape[0] if f1 is not None else 1)
+            self.log('train_loss_2', l2, on_step=True, on_epoch=False, sync_dist=True, batch_size=f2.shape[0] if f2 is not None else 1)
+            # self.log('train_loss_3', l3, on_step=True, on_epoch=False, sync_dist=True, batch_size=f2.shape[0] if f2 is not None else 1)
+
+            target_loss = l1 if c1 is not None else l2
+
+            if target_loss <= self.loss_threshold:
+                print("Below threshold...")
+                self.compute = False
+                return
+
+            opt = self.optimizers()
+            opt.zero_grad()
+            self.manual_backward(loss)
+            opt.step()
+
+        # return loss
+        return
 
     '''
     [Optional] A single validation step.
@@ -250,31 +283,6 @@ class Model(LightningModule):
                     state_dict.pop(key)
 
         return
-    
-    '''
-    Sketching
-    '''
-    def sketch(self, f, s):
-        seeds, rank = s
-        num_points = f.shape[1]
-
-        seeds = seeds.reshape(-1)
-
-        # sf = torch.empty(seeds.shape[0], rank, f.shape[-1], requires_grad=True, device=self.device)
-
-        sf = []
-
-        for i, seed in enumerate(seeds):
-            torch.manual_seed(seed)
-            # sketch = torch.randn(num_points, rank, device=self.device)
-            sketch = torch.randn(num_points, rank, device='cpu').to(self.device)
-
-            # sf[i,:,:] = torch.einsum('nc,nr->rc', f[i,:,:], sketch)
-
-            sf.append(torch.einsum('nc,nr->rc', f[i,:,:], sketch))
-
-        # return sf
-        return torch.stack(sf)
     
     '''
     Hypernetwork direct regularization

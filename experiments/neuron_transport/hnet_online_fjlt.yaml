@@ -14,7 +14,7 @@ train:
   default_root_dir: "./lightning_logs" #str
   logger: True #bool
   log_every_n_steps: 1 #int
-  enable_progress_bar: True #bool
+  enable_progress_bar: False #bool
   # profiler: #str
   limit_val_batches: 0 #bool
   max_epochs: 1 #int
@@ -63,7 +63,7 @@ data:
     sketch:
       size: -1 #int
       cycles: *cycles #int
-      batch_size: 20 #int
+      batch_size: 500 #int
       step: 1 #bool
       delay: True #bool
 
@@ -75,3 +75,4 @@ misc:
   compute_stats: True #bool
   export: True
   finetune: False
+  export_hnet: False

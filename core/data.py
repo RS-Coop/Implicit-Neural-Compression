@@ -13,6 +13,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader, random_split
 from pytorch_lightning import LightningDataModule
 from pytorch_lightning.utilities.combined_loader import CombinedLoader
+
 from .modules.sampler import Buffer
 
 from .utils.sketch import sketch
@@ -172,12 +173,13 @@ class MeshDataset(Dataset):
 #################################################
 
 '''
-Sketched dataset.
+Create a sketch version of the given dataset by randomly sub-sampling.
 '''
 class SketchDataset(MeshDataset):
     def __init__(self,
             dataset,
-            sample_factor
+            sample_factor,
+            sketch_type
         ):
 
         #hyper-parameters
@@ -185,15 +187,14 @@ class SketchDataset(MeshDataset):
         self.rank = round(sample_factor*dataset.num_points)
         self.num_snapshots = dataset.num_snapshots
 
-        #initialize data
+        #Initialize data
         self.points = dataset.points
-        self.features = torch.empty((self.num_snapshots, self.rank, dataset.features.shape[2]))
 
         #Sketching seeds and sketch features
         #NOTE: I think this isn't ideal, but there are some issues trying to generate seeds other ways
         self.seeds = torch.randint(100000, (self.num_snapshots,))
 
-        self.features = sketch(dataset.features, (self.seeds, self.rank))
+        self.features = sketch(dataset.features, (self.seeds, self.rank), sketch_type=sketch_type)
 
         return
     
@@ -233,6 +234,7 @@ class DataModule(LightningDataModule):
             gradients = False,
             buffer = None,
             sample_factor = 0.01,
+            sketch_type = "fjlt",
             data_dir = "./",
             normalize = True,
             split = 0.8,
@@ -288,7 +290,7 @@ class DataModule(LightningDataModule):
 
             if self.online:
                 self.train = train_val
-                self.sketch = SketchDataset(train_val, sample_factor=self.sample_factor) if self.buffer['sketch'] else None
+                self.sketch = SketchDataset(train_val, sample_factor=self.sample_factor, sketch_type=self.sketch_type) if self.buffer['sketch'] else None
 
             else:
                 train_size = round(self.split*len(train_val))
@@ -319,7 +321,7 @@ class DataModule(LightningDataModule):
 
             if self.buffer.get("full"):
                 full_loader = DataLoader(self.train,
-                                            batch_sampler=Buffer(self.train.num_snapshots, **self.buffer['full']),
+                                            batch_sampler=Buffer(self.train.num_snapshots//self.time_span, **self.buffer['full']),
                                             num_workers=self.num_workers*self.trainer.num_devices,
                                             persistent_workers=self.persistent_workers,
                                             pin_memory=self.pin_memory,
@@ -329,7 +331,7 @@ class DataModule(LightningDataModule):
 
             if self.buffer.get("sketch"):
                 sketch_loader = DataLoader(self.sketch,
-                                            batch_sampler=Buffer(self.train.num_snapshots, **self.buffer['sketch']),
+                                            batch_sampler=Buffer(self.train.num_snapshots//self.time_span, **self.buffer['sketch']),
                                             num_workers=self.num_workers*self.trainer.num_devices,
                                             persistent_workers=self.persistent_workers,
                                             pin_memory=self.pin_memory,

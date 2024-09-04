@@ -8,6 +8,7 @@ from importlib import import_module
 import torch
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
+from pytorch_lightning.profilers import AdvancedProfiler
 
 from core.model import Model
 from core.data import DataModule
@@ -65,6 +66,10 @@ def train(config_path, config):
 
         #Add logger to trainer args
         trainer_args['logger'] = logger
+        
+    #Profiler
+    if trainer_args.get("profiler") == "advanced":
+        trainer_args['profiler'] = AdvancedProfiler(dirpath=logger.log_dir, filename="perf")
 
     #Fine tuner
     if misc_args.get('finetune'):

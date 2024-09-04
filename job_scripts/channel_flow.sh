@@ -12,8 +12,8 @@
 #ntasks-per-node should match num_gpus
 #cpus-per-task per node should be num_workers per gpu
 
-TEST=channel_flow/offline
-TIME=00:12:00:00
+TEST=channel_flow/hypernet_online
+TIME=00:14:00:00
 PYTHON=/projects/cosi1728/software/anaconda/envs/compression/bin/python
 
 DATA_DIR=data/channel_flow

@@ -14,7 +14,7 @@ train:
   default_root_dir: "./lightning_logs" #str
   logger: True #bool
   log_every_n_steps: 1 #int
-  enable_progress_bar: True #bool
+  enable_progress_bar: False #bool
   # profiler: #str
   limit_val_batches: 0 #bool
   max_epochs: 1 #int
@@ -42,7 +42,7 @@ model:
 
 #PT LightningDataModule arguments
 data:
-  spatial_dim: 3 #int
+  spatial_dim: 2 #int
   points_path: "points.npy" #str
   features_path: "features.npy" #str
   time_span: 1 #int
@@ -50,7 +50,7 @@ data:
   sample_factor: 0.05
   sketch_type: *sketch_type
   batch_size: 1 #int
-  channels: [0] #list[int]
+  channels: [0,1] #list[int]
   normalize: False #bool
   split: 1.0 #float [0,1]
   shuffle: False #bool
@@ -63,15 +63,16 @@ data:
     sketch:
       size: -1 #int
       cycles: *cycles #int
-      batch_size: 20 #int
+      batch_size: 450 #int
       step: 1 #bool
       delay: True #bool
 
 #Miscellaneous arguments
 misc:
   early_stopping: False #bool
-  make_gif: False #bool
+  make_gif: True #bool
   make_error_plots: True
   compute_stats: True #bool
   export: True
   finetune: False
+  export_hnet: False

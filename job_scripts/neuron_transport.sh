@@ -13,7 +13,7 @@
 #cpus-per-task per node should be num_workers per gpu
 
 TEST=neuron_transport/hypernet_online
-TIME=00:12:00:00
+TIME=00:14:00:00
 PYTHON=/projects/cosi1728/software/anaconda/envs/compression/bin/python
 
 DATA_DIR=data/neuron_transport
