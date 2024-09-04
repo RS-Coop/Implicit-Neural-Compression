@@ -52,7 +52,7 @@ data:
   buffer:
     full: # null
       size: -1
-      cycles: 10000
+      cycles: 1000
       batch_size: 45
       step: 450
     sketch: null
