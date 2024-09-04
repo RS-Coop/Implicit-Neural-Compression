@@ -22,11 +22,11 @@ train:
 
 #Model and Data shared variables
 &sketch_type "fjlt"
-&cycles 1000
+&cycles 200
 
 #Model arguments
 model:
-  # ckpt_path: "lightning_logs/ignition/hypernet_offline/version_1/checkpoints/last.ckpt" #str, only use this if you want to continue training model from checkpoint
+  # ckpt_path: "lightning_logs/ignition/batching/time/version_1/checkpoints/best-epoch=89.ckpt" #str, only use this if you want to continue training model from checkpoint
   output_activation: "Identity"
   hypernet_kwargs:
     hidden_features: 16
@@ -42,7 +42,7 @@ model:
 
 #PT LightningDataModule arguments
 data:
-  spatial_dim: 2 #int
+  spatial_dim: 3 #int
   points_path: "points.npy" #str
   features_path: "features.npy" #str
   time_span: 1 #int
@@ -50,23 +50,27 @@ data:
   sample_factor: 0.05
   sketch_type: *sketch_type
   batch_size: 1 #int
-  channels: [0,1] #list[int]
+  channels: [0] #list[int]
   normalize: False #bool
   split: 1.0 #float [0,1]
   shuffle: False #bool
   buffer:
-    full: null
+    full:
+      size: 1 #int
+      cycles: *cycles #int
+      batch_size: 1 #int
+      step: 1 #int
     sketch:
       size: -1 #int
       cycles: *cycles #int
-      batch_size: 450 #int
-      step: 450 #bool
-      delay: False #bool
+      batch_size: 500 #int
+      step: 1 #bool
+      delay: True #bool
 
 #Miscellaneous arguments
 misc:
   early_stopping: False #bool
-  make_gif: True #bool
+  make_gif: False #bool
   make_error_plots: True
   compute_stats: True #bool
   export: True

@@ -34,11 +34,13 @@ class Model(LightningModule):
             output_shape,
             hypernet_kwargs,
             inr_kwargs,
+            cycles,
             loss_fn = "R3Error",
             learning_rate = 1e-4,
             scheduler = False,
             output_activation = "Identity",
-            sketch_type = "fjlt"
+            sketch_type = None,
+            loss_threshold = 1e-2
         ):
         super().__init__()
 
@@ -96,7 +98,8 @@ class Model(LightningModule):
         self.automatic_optimization = False
 
         self.compute = True
-        self.loss_threshold = 0.01
+        self.loss_threshold = loss_threshold
+        self.cycles = cycles
 
         return
     
@@ -126,7 +129,7 @@ class Model(LightningModule):
     '''
     def training_step(self, batch, idx):
 
-        if idx%200 == 0:
+        if idx%self.cycles == 0:
             self.compute = True
         #     print("CHECKPOINTING")
         #     self.checkpoint()

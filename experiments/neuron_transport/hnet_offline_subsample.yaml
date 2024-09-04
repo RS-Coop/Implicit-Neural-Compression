@@ -21,7 +21,7 @@ train:
   # max_steps: #int
 
 #Model and Data shared variables
-&sketch_type "fjlt"
+&sketch_type "subsample"
 &cycles 1000
 
 #Model arguments
@@ -42,7 +42,7 @@ model:
 
 #PT LightningDataModule arguments
 data:
-  spatial_dim: 2 #int
+  spatial_dim: 3 #int
   points_path: "points.npy" #str
   features_path: "features.npy" #str
   time_span: 1 #int
@@ -50,7 +50,7 @@ data:
   sample_factor: 0.05
   sketch_type: *sketch_type
   batch_size: 1 #int
-  channels: [0,1] #list[int]
+  channels: [0] #list[int]
   normalize: False #bool
   split: 1.0 #float [0,1]
   shuffle: False #bool
@@ -59,14 +59,14 @@ data:
     sketch:
       size: -1 #int
       cycles: *cycles #int
-      batch_size: 450 #int
-      step: 450 #bool
+      batch_size: 500 #int
+      step: 500 #bool
       delay: False #bool
 
 #Miscellaneous arguments
 misc:
   early_stopping: False #bool
-  make_gif: True #bool
+  make_gif: False #bool
   make_error_plots: True
   compute_stats: True #bool
   export: True
