@@ -12,13 +12,14 @@ Root relative reconstruction loss
 '''
 class R3Loss(nn.Module):
 
-    def __init__(self, reduction="mean"):
+    def __init__(self, reduction="mean", dim=1):
         super().__init__()
 
         self.reduction = reduction
+        self.dim = dim
 
     def forward(self, preds, target):
-        return torch.mean(r3error(preds, target))
+        return torch.mean(r3error(preds, target, dim=self.dim))
     
 '''
 Point-wise relative reconstruction loss

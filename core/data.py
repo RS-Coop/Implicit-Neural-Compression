@@ -13,7 +13,9 @@ import torch
 from torch.utils.data import Dataset, DataLoader, random_split
 from pytorch_lightning import LightningDataModule
 from pytorch_lightning.utilities.combined_loader import CombinedLoader
-from .modules.sampler import Buffer, Window, Queue
+from .modules.sampler import Buffer
+
+from .utils.sketch import sketch
 
 '''
 '''
@@ -121,25 +123,13 @@ class MeshDataset(Dataset):
         self.num_snapshots = self.features.shape[0]
 
         return
+    
+    @property
+    def size(self):
+        return self.features.numel()
 
     def __len__(self):
         return self.num_snapshots
-
-    def __getitem__(self, idx):
-        #normalized time
-        t_coord = torch.tensor(2*(idx/(self.num_snapshots-1))-1).expand(self.num_points, 1)
-
-        #coordinates
-        coordinates = torch.cat((self.points[idx,:,:], t_coord))
-
-        #features
-        if self.gradients != None:
-            features = torch.cat((self.features[idx,:,:], torch.flatten(self.gradients[idx,...], start_dim=2)))
-        else:
-            features = self.features[idx,:,:]
-
-        return coordinates, features
-    
     
     def __getitems__(self, idxs):
         if isinstance(idxs, list): idxs = torch.tensor(idxs)
@@ -147,8 +137,7 @@ class MeshDataset(Dataset):
         if idxs.numel() == 0: return None, None
 
         #normalized time
-        # t_coord = (2*idxs/(self.num_snapshots-1)-1).view(-1,1,1).expand(-1, self.num_points, -1)
-        t_coord = (0.0*idxs).view(-1,1,1).expand(-1, self.num_points, -1)
+        t_coord = (2*idxs/(self.num_snapshots-1)-1).view(-1,1,1).expand(-1, self.num_points, -1)
 
         #coordinates
         coordinates = torch.cat((self.points[idxs,:,:], t_coord), dim=2)
@@ -183,47 +172,46 @@ class MeshDataset(Dataset):
 #################################################
 
 '''
-Create a coarse version of the given dataset by randomly sub-sampling.
+Sketched dataset.
 '''
-class CoarseDataset(MeshDataset):
+class SketchDataset(MeshDataset):
     def __init__(self,
             dataset,
             sample_factor
         ):
 
         #hyper-parameters
-        self.num_points = round(sample_factor*dataset.num_points)
+        self.num_points = dataset.num_points
+        self.rank = round(sample_factor*dataset.num_points)
         self.num_snapshots = dataset.num_snapshots
 
         #initialize data
-        self.points = torch.empty((self.num_snapshots, self.num_points, dataset.points.shape[2]))
-        self.features = torch.empty((self.num_snapshots, self.num_points, dataset.features.shape[2]))
-        if dataset.gradients != None:
-            self.gradients = torch.empty((self.num_snapshots, self.num_points, dataset.features.shape[2]))
-        else:
-            self.gradients = None
+        self.points = dataset.points
+        self.features = torch.empty((self.num_snapshots, self.rank, dataset.features.shape[2]))
 
-        #fill data
-        if self.gradients != None:
-            probs = torch.mean(torch.norm(dataset.gradients, dim=3), dim=2)
-            probs += torch.rand_like(probs)*0.25*torch.amax(probs, dim=1, keepdim=True)
-            probs = probs/torch.sum(probs, dim=1, keepdim=True)
+        #Sketching seeds and sketch features
+        #NOTE: I think this isn't ideal, but there are some issues trying to generate seeds other ways
+        self.seeds = torch.randint(100000, (self.num_snapshots,))
 
-            for i in range(self.num_snapshots):
-                idxs = torch.multinomial(probs[i,:], self.num_points)
-
-                self.points[i,:,:] = dataset.points[i,idxs,:]
-                self.features[i,:,:] = dataset.features[i,idxs,:]
-        else:
-            for i in range(self.num_snapshots):
-                perm = torch.randperm(dataset.num_points)[:self.num_points]
-
-                self.points[i,:,:] = dataset.points[i,perm,:]
-                self.features[i,:,:] = dataset.features[i,perm,:]
-                if self.gradients:
-                    self.gradients[i,:,:] = dataset.gradients[i,perm,:]
+        self.features = sketch(dataset.features, (self.seeds, self.rank))
 
         return
+    
+    def __getitems__(self, idxs):
+        if isinstance(idxs, list): idxs = torch.tensor(idxs)
+
+        if idxs.numel() == 0: return None, None, None
+
+        #normalized time
+        t_coord = (2*idxs/(self.num_snapshots-1)-1).view(-1,1,1).expand(-1, self.num_points, -1)
+
+        #coordinates
+        coordinates = torch.cat((self.points[idxs,:,:], t_coord), dim=2)
+
+        #features
+        features = self.features[idxs,:,:]
+
+        return coordinates, features, (self.seeds[idxs], self.rank)
 
 #################################################
 
@@ -244,6 +232,7 @@ class DataModule(LightningDataModule):
             channels,
             gradients = False,
             buffer = None,
+            sample_factor = 0.01,
             data_dir = "./",
             normalize = True,
             split = 0.8,
@@ -299,7 +288,7 @@ class DataModule(LightningDataModule):
 
             if self.online:
                 self.train = train_val
-                self.coarse = CoarseDataset(train_val, sample_factor=0.01) if self.buffer['coarse'] else None
+                self.sketch = SketchDataset(train_val, sample_factor=self.sample_factor) if self.buffer['sketch'] else None
 
             else:
                 train_size = round(self.split*len(train_val))
@@ -326,24 +315,29 @@ class DataModule(LightningDataModule):
     def train_dataloader(self):
         if self.online:
 
-            full_loader = DataLoader(self.train,
-                                        batch_sampler=Window(self.train.num_snapshots, **self.buffer['full']),
-                                        num_workers=self.num_workers*self.trainer.num_devices,
-                                        persistent_workers=self.persistent_workers,
-                                        pin_memory=self.pin_memory,
-                                        collate_fn=lambda x: x)
-            if self.buffer['coarse']:
-                coarse_loader = DataLoader(self.coarse,
-                                            batch_sampler=Queue(self.train.num_snapshots, **self.buffer['coarse']),
+            loaders = dict()
+
+            if self.buffer.get("full"):
+                full_loader = DataLoader(self.train,
+                                            batch_sampler=Buffer(self.train.num_snapshots, **self.buffer['full']),
                                             num_workers=self.num_workers*self.trainer.num_devices,
                                             persistent_workers=self.persistent_workers,
                                             pin_memory=self.pin_memory,
                                             collate_fn=lambda x: x)
+                
+                loaders["full"] = full_loader
 
-                return CombinedLoader((full_loader, coarse_loader), mode='max_size_cycle')
-            
-            else:
-                return full_loader
+            if self.buffer.get("sketch"):
+                sketch_loader = DataLoader(self.sketch,
+                                            batch_sampler=Buffer(self.train.num_snapshots, **self.buffer['sketch']),
+                                            num_workers=self.num_workers*self.trainer.num_devices,
+                                            persistent_workers=self.persistent_workers,
+                                            pin_memory=self.pin_memory,
+                                            collate_fn=lambda x: x)
+                
+                loaders["sketch"] = sketch_loader
+
+            return CombinedLoader(loaders, mode='max_size_cycle')
 
         else:
             return DataLoader(self.train,

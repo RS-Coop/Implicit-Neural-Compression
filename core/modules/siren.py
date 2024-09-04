@@ -69,6 +69,12 @@ class SineBlock(nn.Module):
         ):
         super().__init__()
 
+        # mid_width = int(width/2)
+
+        # self.net = nn.Sequential(SineLayer(width, mid_width, bias=bias, omega_0=omega_0),
+        #                          SineLayer(mid_width, mid_width, bias=bias, omega_0=omega_0),
+        #                          SineLayer(mid_width, width, bias=bias, omega_0=omega_0))
+        
         self.net = nn.Sequential(SineLayer(width, width, bias=bias, omega_0=omega_0),
                                  SineLayer(width, width, bias=bias, omega_0=omega_0))
 
@@ -95,7 +101,7 @@ class Siren(nn.Module):
         self.net = nn.Sequential()
 
         #flatten
-        self.net.append(nn.Flatten(start_dim=0, end_dim=1))
+        self.net.append(nn.Flatten(start_dim=0, end_dim=-2))
 
         #first layer
         self.net.append(SineLayer(in_features, hidden_features, is_first=True, omega_0=first_omega_0))
@@ -117,6 +123,10 @@ class Siren(nn.Module):
             last = SineLayer(hidden_features, out_features, is_first=False, omega_0=hidden_omega_0)
 
         self.net.append(last)
+
+    @property
+    def size(self):
+        return sum(p.numel() for p in self.parameters())
 
     @property
     def num_hidden_layers(self):
@@ -150,4 +160,4 @@ class Siren(nn.Module):
         shape = coords.shape
         out = self.net(coords)
 
-        return torch.unflatten(out, 0, shape[0:2])
+        return torch.unflatten(out, 0, shape[0:-1])

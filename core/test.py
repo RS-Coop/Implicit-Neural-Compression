@@ -15,6 +15,8 @@ from .utils.gif import make_gif
 from .utils.plots import make_error_plots
 from .utils.utils import Logger
 
+import json
+
 def test(log_dir, config):
 
     #Extract args
@@ -58,6 +60,8 @@ def test(log_dir, config):
         with torch.inference_mode():
             trainer.test(model=model, datamodule=datamodule)
 
+        print("Compression Factor", datamodule.test.size/model.size)
+
     #make error plots
     if misc_args.get("make_error_plots"):
         make_error_plots(trainer, datamodule, model)
@@ -70,7 +74,7 @@ def test(log_dir, config):
         with torch.inference_mode():
             data = trainer.predict(model=model, datamodule=datamodule)
 
-        data = torch.cat(data).reshape(len(datamodule.predict), -1, datamodule.output_shape[1])
+        data = torch.cat(data).reshape(datamodule.predict.num_snapshots, -1, datamodule.output_shape[2])
 
         data = datamodule.predict.denorm_f(data)
         

@@ -4,7 +4,7 @@
 #Documentation: https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
 #Comment out options you aren't using
 train:
-  accelerator: "auto" #str e.g. "gpu"
+  accelerator: "cpu" #str e.g. "gpu"
   devices: "auto" #int
   # num_nodes: #int
   # strategy: #str
@@ -14,7 +14,7 @@ train:
   default_root_dir: "./lightning_logs" #str
   logger: True #bool
   log_every_n_steps: 1 #int
-  enable_progress_bar: False #bool
+  enable_progress_bar: True #bool
   # profiler: #str
   limit_val_batches: 0 #bool
   max_epochs: 1 #int
@@ -25,8 +25,9 @@ model:
   # ckpt_path: "lightning_logs/ignition/batching/time/version_1/checkpoints/best-epoch=89.ckpt" #str, only use this if you want to continue training model from checkpoint
   inr_type: "siren"
   output_activation: "Identity"
-  hidden_features: 64
-  blocks: 3
+  hidden_features: 32
+  blocks: 2
+  hyper_hidden_features: 10
   loss_fn: "R3Loss"
   learning_rate: 0.0001 #float
   scheduler: False
@@ -34,39 +35,39 @@ model:
 #PT LightningDataModule arguments
 data:
   spatial_dim: 2 #int
-  points_path: "points.npy" #str
-  features_path: "features.npy" #str
-  gradients: False #bool
-  sample_factor: 0.05
+  points_path: "points_p1.npy" #str
+  features_path: "features_p1.npy" #str
+  gradients: True #bool
+  sample_factor: 0.10
   batch_size: 1 #int
-  channels: [0,1] #list[int]
+  channels: [1] #list[int]
   normalize: False #bool
   split: 1.0 #float [0,1]
   shuffle: False #bool
   buffer:
-    full:
-      size: 1 #int
-      cycles: 200 #int
-      batch_size: 1 #int
-      step: 1 #int
-    sketch:
-      size: -1 #int
-      cycles: 200 #int
-      batch_size: 50 #int
-      step: 1 #bool
-      delay: True #bool
+    # full:
+    #   size: 16 #int
+    #   cycles: 1 #int
+    #   batch_size: 16 #int
+    #   slide: True #bool
     # coarse:
     #   size: -1 #int
-    #   cycles: 5000 #int
-    #   batch_size: 50 #int
-    #   step: 450 #bool
-    #   delay: False #bool
+    #   cycles: 1 #int
+    #   batch_size: 64 #int
+    #   slide: True #bool
+    full:
+      window_size: 1
+      cycles: 100
+    coarse:
+      step: 1
+      cycles: 100
+      batch_size: 10
 
 #Miscellaneous arguments
 misc:
   early_stopping: False #bool
-  make_gif: True #bool
+  make_gif: False #bool
   make_error_plots: True
   compute_stats: True #bool
-  export: True
+  export: False
   finetune: False

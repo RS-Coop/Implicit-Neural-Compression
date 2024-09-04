@@ -139,9 +139,9 @@ Peak Signal to Noise Ratio
 Input:
     preds, target: tensors of shape (T, N, C)
 '''
-def psnr(preds, targets):
-    r = torch.amax(targets, dim=(1))
-    mse = torch.mean((preds-targets)**2, dim=(1))
+def psnr(preds, targets, dim=1):
+    r = torch.amax(targets, dim=dim)
+    mse = torch.mean((preds-targets)**2, dim=dim)
 
     return 10*torch.log10((r**2+1e-8)/mse)
 
@@ -154,19 +154,19 @@ class PSNR(Metric):
 
     def __init__(self, num_channels):
         super().__init__()
-        self.add_state("psnr", default=torch.zeros(num_channels), dist_reduce_fx="sum")
+        self.add_state("sum", default=torch.zeros(num_channels), dist_reduce_fx="sum")
         self.add_state("num_samples", default=torch.tensor(0), dist_reduce_fx="sum")
 
     def update(self, preds: torch.Tensor, targets: torch.Tensor):
         
         val = psnr(preds, targets)
 
-        self.psnr += torch.sum(val, dim=0)
+        self.sum += torch.sum(val, dim=0)
         self.num_samples += val.shape[0]
 
     def compute(self, reduce_channels=False):
-        psnr = self.psnr/self.num_samples
+        psnr_mean = self.sum/self.num_samples
 
-        if reduce_channels: psnr = torch.mean(psnr)
+        if reduce_channels: psnr_mean = torch.mean(psnr_mean)
 
-        return psnr
+        return psnr_mean

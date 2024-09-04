@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --time=02:00:00
+#SBATCH --time=04:00:00
 #SBATCH --job-name=ignition
 #SBATCH --qos=preemptable
 #SBATCH --gres=gpu:a100:1
@@ -12,7 +12,7 @@
 #cpus-per-task per node should be num_workers per gpu
 
 TEST=ignition/online
-TIME=00:01:00:00
+TIME=00:03:00:00
 PYTHON=/projects/cosi1728/software/anaconda/envs/compression/bin/python
 
 DATA_DIR=data/ignition

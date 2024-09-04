@@ -62,7 +62,7 @@ class Wire(nn.Module):
                  hidden_features,
                  blocks,
                  out_features,
-                 outermost_linear=False, 
+                 outermost_linear=True, 
                  first_omega_0=30, 
                  hidden_omega_0=30
         ):
@@ -82,7 +82,16 @@ class Wire(nn.Module):
             self.net.append(WaveletBlock(hidden_features))
 
         #last layer
-        self.net.append(WaveletLayer(hidden_features, out_features, is_first=False))
+        if outermost_linear:
+            last = nn.Linear(hidden_features, out_features)
+        else:
+            last = WaveletLayer(hidden_features, out_features, is_first=False)
+
+        self.net.append(last)
+
+    @property
+    def size(self):
+        return sum(p.numel() for p in self.parameters())
     
     def forward(self, coords):
         shape = coords.shape
