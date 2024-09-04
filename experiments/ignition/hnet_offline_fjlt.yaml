@@ -57,8 +57,8 @@ data:
       # step: 450
     sketch: # null
       size: -1 #int
-      cycles: 5000 #int
-      batch_size: 20 #int
+      cycles: 10000 #int
+      batch_size: 450 #int
       step: 450 #bool
       delay: False #bool
 

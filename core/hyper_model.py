@@ -147,7 +147,9 @@ class Model(LightningModule):
             self.log('train_loss_2', l2, on_step=True, on_epoch=False, sync_dist=True, batch_size=f2.shape[0] if f2 is not None else 1)
             # self.log('train_loss_3', l3, on_step=True, on_epoch=False, sync_dist=True, batch_size=f2.shape[0] if f2 is not None else 1)
 
-            if l1 <= self.loss_threshold:
+            target_loss = l1 if c1 is not None else l2
+
+            if target_loss <= self.loss_threshold:
                 print("Below threshold...")
                 self.compute = False
                 return
