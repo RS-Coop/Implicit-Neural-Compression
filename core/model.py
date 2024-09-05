@@ -154,7 +154,7 @@ class Model(LightningModule):
             l2 = self.loss_fn(sketch(self(c2), s, sketch_type=self.sketch_type, device=self.device), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #sketch loss
             # l3 = self.compute_reg(c2[0]) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=l1.device) #hypernet output loss
 
-            loss = l1 + l2
+            loss = l1 + 5*l2
             # loss = l1 + l3
             # loss = l1 + l2 + l3
 
