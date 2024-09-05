@@ -33,7 +33,7 @@ def train(config_path, config):
         model = Model(input_shape=datamodule.input_shape, output_shape=datamodule.output_shape, **model_args)
 
     #Torch Compile
-    model = torch.compile(model)
+    # model = torch.compile(model)
 
     #Callbacks
     callbacks=[]

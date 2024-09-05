@@ -109,7 +109,6 @@ class Siren(nn.Module):
         #blocks
         for i in range(blocks):
             self.net.append(SineBlock(hidden_features, omega_0=hidden_omega_0))
-            # self.net.append(SineLayer(hidden_features, hidden_features, is_first=False, omega_0=hidden_omega_0))
 
         #last layer
         if outermost_linear:
@@ -153,11 +152,32 @@ class Siren(nn.Module):
         return activations
     
     def forward(self, coords):
-        # coords = coords.clone().detach().requires_grad_(True) # allows to take derivative w.r.t. input
-        # output = self.net(coords)
-        # return coords, output
 
         shape = coords.shape
         out = self.net(coords)
 
         return torch.unflatten(out, 0, shape[0:-1])
+    
+        # coords = coords.clone().detach().requires_grad_(True) # allows to take derivative w.r.t. input
+        # output = self.net(coords)
+        # return coords, output
+
+class INR(nn.Module):
+    def __init__(self,
+                 inr_kwargs
+        ):
+        super().__init__()
+
+        self.siren = Siren(**inr_kwargs)
+
+    @property
+    def size(self):
+        return self.siren.size
+    
+    def forward(self, t, x):
+        t = torch.flatten(t, start_dim=0, end_dim=1)
+        x = torch.flatten(x, start_dim=0, end_dim=1)
+        coords = torch.cat((x, t.view(*t.shape,1,1).expand(-1, x.shape[1], -1)), dim=2)
+
+        return self.siren(coords)
+

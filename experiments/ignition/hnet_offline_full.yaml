@@ -20,12 +20,13 @@ train:
   max_epochs: 1 #int
   # max_steps: #int
 
-&sketch_type null
-&cycles 1000
+#Model and Data shared variables
+_sketch_type: &sketch_type null
+_cycles: &cycles 1000
 
 #Model arguments
 model:
-  # ckpt_path: "lightning_logs/ignition/hypernet_offline/version_1/checkpoints/last.ckpt" #str, only use this if you want to continue training model from checkpoint
+  # ckpt_path: #str, only use this if you want to continue training model from checkpoint
   output_activation: "Identity"
   hypernet_kwargs:
     hidden_features: 16
@@ -34,7 +35,7 @@ model:
     hidden_features: 16
     blocks: 3
   loss_fn: "R3Loss"
-  learning_rate: 0.0001 #float
+  learning_rate: 1.e-4 #float
   scheduler: False
   sketch_type: *sketch_type
   cycles: *cycles

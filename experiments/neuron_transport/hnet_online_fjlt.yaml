@@ -21,8 +21,8 @@ train:
   # max_steps: #int
 
 #Model and Data shared variables
-&sketch_type "fjlt"
-&cycles 200
+_sketch_type: &sketch_type "fjlt"
+_cycles: &cycles 200
 
 #Model arguments
 model:

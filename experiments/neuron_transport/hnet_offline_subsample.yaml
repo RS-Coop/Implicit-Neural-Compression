@@ -21,8 +21,8 @@ train:
   # max_steps: #int
 
 #Model and Data shared variables
-&sketch_type "subsample"
-&cycles 1000
+_sketch_type: &sketch_type "subsample"
+_cycles: &cycles 1000
 
 #Model arguments
 model:

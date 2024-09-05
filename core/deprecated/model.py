@@ -10,12 +10,12 @@ import torch.nn as nn
 from pytorch_lightning import LightningModule
 import torchmetrics as tm
 
-import copy
-
 from core.modules.metrics import R3Error, RPWError, RFError, PSNR
+from core.modules.siren import Siren
+from core.modules.wire import Wire
 from core.modules.loss import R3Loss, RPWLoss, W2Loss
 
-from core.modules.hypernet import HyperINR
+# from .modules.injector import Injector
 
 from core.utils.sketch import sketch
 from core.utils.diff_ops import jacobian
@@ -32,15 +32,13 @@ class Model(LightningModule):
     def __init__(self,
             input_shape,
             output_shape,
-            hypernet_kwargs,
-            inr_kwargs,
-            cycles,
+            inr_type = "siren",
+            hidden_features = 128,
+            blocks = 1,
             loss_fn = "R3Error",
             learning_rate = 1e-4,
-            scheduler = False,
+            scheduler = True,
             output_activation = "Identity",
-            sketch_type = None,
-            loss_threshold = 1e-2
         ):
         super().__init__()
 
@@ -51,11 +49,8 @@ class Model(LightningModule):
         self.learning_rate = learning_rate
         self.scheduler = scheduler
 
-        #Unpack input shape
-        hypernet_input_shape, inr_input_shape = input_shape
-
-        #Sample input
-        self.example_input_array = {'coords': (torch.zeros(hypernet_input_shape), torch.zeros(inr_input_shape))}
+        #
+        self.example_input_array = torch.zeros(input_shape)
 
         #Loss function
         if loss_fn == "R3Loss":
@@ -67,15 +62,15 @@ class Model(LightningModule):
         else:
             self.loss_fn = getattr(nn, loss_fn)()
 
-        #Build network
+        #Build INR network
         self.output_activation = getattr(nn, output_activation)()
 
-        hypernet_kwargs["in_features"] = hypernet_input_shape[1]
-
-        inr_kwargs["in_features"] = inr_input_shape[3]
-        inr_kwargs["out_features"] = output_shape[2]
-
-        self.hyper_inr = HyperINR(hypernet_kwargs, inr_kwargs)
+        if inr_type == "siren":
+            self.inr = Siren(input_shape[2], hidden_features, blocks, output_shape[2])
+        elif inr_type == "wire":
+            self.inr = Wire(input_shape[2], hidden_features, blocks, output_shape[2])
+        else:
+            raise Exception(f'Invalid inr_type {inr_type}')
 
         #Metrics
         self.error = R3Error(num_channels=output_shape[2])
@@ -85,27 +80,17 @@ class Model(LightningModule):
         self.prefix = ''
         self.denormalize = None
 
-        #Sketch type
-        self.sketch_type = sketch_type
-
-        #Hypernetwork checkpoint
-        self.hypernet_checkpoint = None
-
-        #Exact parameter count
+        #exact parameter count
         print(f"Exact parameter count: {self.size}")
 
-        #Loss dependent updates
-        self.automatic_optimization = False
-
-        self.compute = True
-        self.loss_threshold = loss_threshold
-        self.cycles = cycles
+        #continual backpro
+        # self.injector = Injector(self.inr, replacement_rate=0.3)
 
         return
     
     @property
     def size(self):
-        return sum(p.numel() for p in self.hyper_inr.hypernet.parameters())
+        return sum(p.numel() for p in self.parameters())
     
     def unpack(self, batch):
         full = batch.get("full", (None, None))
@@ -117,9 +102,11 @@ class Model(LightningModule):
     [Optional] A forward eavaluation of the network.
     '''
     def forward(self, coords):
-        t, xt = coords
+        return self.output_activation(self.inr(coords))
 
-        return self.output_activation(self.hyper_inr(t, xt))
+        # c, output = self.inr(coords)
+
+        # return c, self.output_activation(output)
 
     '''
     A single training step on the given batch.
@@ -129,41 +116,20 @@ class Model(LightningModule):
     '''
     def training_step(self, batch, idx):
 
-        if idx%self.cycles == 0:
-            self.compute = True
-        #     print("CHECKPOINTING")
-        #     self.checkpoint()
+        (c1, f1), (c2, f2, s) = self.unpack(batch)
 
-        if self.compute:
+        # if c2 is not None and idx%300==0:
+        #     self.injector(c2) #update CBP parameters and weights
 
-            (c1, f1), (c2, f2, s) = self.unpack(batch)
+        l1 = self.loss_fn(self(c1), f1) if c1 is not None else torch.tensor([0.0], requires_grad=True, device=self.device)
+        l2 = self.loss_fn(sketch(self(c2), s, device=self.device), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #sketch loss
 
-            l1 = self.loss_fn(self(c1), f1) if c1 is not None else torch.tensor([0.0], requires_grad=True, device=self.device)
-            l2 = self.loss_fn(sketch(self(c2), s, sketch_type=self.sketch_type, device=self.device), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #sketch loss
-            # l3 = self.compute_reg(c2[0]) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=l1.device) #hypernet output loss
+        loss = l1 + l2
 
-            loss = l1 + l2
-            # loss = l1 + 10*l3
-            # loss = l1 + l2 + l3
+        self.log('train_loss_1', l1, on_step=True, on_epoch=False, sync_dist=True, batch_size=f1.shape[0] if f1 is not None else 1)
+        self.log('train_loss_2', l2, on_step=True, on_epoch=False, sync_dist=True, batch_size=f2.shape[0] if f2 is not None else 1)
 
-            self.log('train_loss_1', l1, on_step=True, on_epoch=False, sync_dist=True, batch_size=f1.shape[0] if f1 is not None else 1)
-            self.log('train_loss_2', l2, on_step=True, on_epoch=False, sync_dist=True, batch_size=f2.shape[0] if f2 is not None else 1)
-            # self.log('train_loss_3', l3, on_step=True, on_epoch=False, sync_dist=True, batch_size=f2.shape[0] if f2 is not None else 1)
-
-            target_loss = l1 if c1 is not None else l2
-
-            if target_loss <= self.loss_threshold:
-                print("Below threshold...")
-                self.compute = False
-                return
-
-            opt = self.optimizers()
-            opt.zero_grad()
-            self.manual_backward(loss)
-            opt.step()
-
-        # return loss
-        return
+        return loss
 
     '''
     [Optional] A single validation step.
@@ -173,6 +139,7 @@ class Model(LightningModule):
 
         #predictions
         preds = self(coords)
+        # _, preds = self(coords)
 
         #compute error
         self.error.update(preds, features)
@@ -190,6 +157,7 @@ class Model(LightningModule):
 
         #predictions
         preds = self(coords)
+        # _, preds = self(coords)
 
         #update error
         if self.denormalize != None:
@@ -238,7 +206,20 @@ class Model(LightningModule):
     def predict_step(self, batch, idx):
         coords, _ = batch
 
+        # return self(coords)[1]
         return self(coords)
+
+        # coords, _ = batch
+
+        # c, preds = self(coords)
+
+        # #compute jacobian
+        # J = jacobian(preds, c)[:,:,:-1]
+
+        # #concatenate with preds
+        # preds = torch.cat((preds, torch.flatten(J, start_dim=1)), dim=1)
+
+        # return preds
 
     '''
     Configure optimizers and optionally configure learning rate scheduler.
@@ -275,32 +256,6 @@ class Model(LightningModule):
     '''
     def on_save_checkpoint(self, checkpoint):
 
-        state_dict = checkpoint["state_dict"]
-
-        if self.hypernet_checkpoint is not None:
-            for key in list(state_dict.keys()):
-                if "hypernet_checkpoint" in key:
-                    state_dict.pop(key)
+        # state_dict = checkpoint["state_dict"]
 
         return
-    
-    '''
-    Hypernetwork direct regularization
-    '''
-    def checkpoint(self):
-        
-        self.hypernet_checkpoint = copy.deepcopy(self.hyper_inr.hypernet)
-
-        return
-    
-    def compute_reg(self, t):
-
-        losses = [torch.zeros(1, requires_grad=True, device=t.device) for i in range(t.shape[0])]
-
-        for i, t_batch in enumerate(t):
-            with torch.no_grad():
-                ref = self.hypernet_checkpoint(t_batch)
-
-            losses[i] = torch.nn.functional.l1_loss(ref, self.hyper_inr.hypernet(t_batch))
-
-        return sum(losses)
