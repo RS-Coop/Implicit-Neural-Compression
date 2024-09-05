@@ -12,7 +12,7 @@
 #ntasks-per-node should match num_gpus
 #cpus-per-task per node should be num_workers per gpu
 
-TEST=neuron_transport/hypernet_online
+TEST=neuron_transport/hnet_offline_full
 TIME=00:14:00:00
 PYTHON=/projects/cosi1728/software/anaconda/envs/compression/bin/python
 
