@@ -63,7 +63,7 @@ data:
     sketch:
       size: -1 #int
       cycles: *cycles #int
-      batch_size: 450 #int
+      batch_size: 45 #int
       step: 1 #bool
       delay: True #bool
 

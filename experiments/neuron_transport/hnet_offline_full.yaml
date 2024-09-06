@@ -22,7 +22,7 @@ train:
 
 #Model and Data shared variables
 _sketch_type: &sketch_type null
-_cycles: &cycles 5000
+_cycles: &cycles 30000
 
 #Model arguments
 model:
@@ -58,7 +58,7 @@ data:
     full:
       size: -1
       cycles: *cycles
-      batch_size: 50
+      batch_size: 25
       step: 500
     sketch: null
 

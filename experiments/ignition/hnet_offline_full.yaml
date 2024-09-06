@@ -22,7 +22,7 @@ train:
 
 #Model and Data shared variables
 _sketch_type: &sketch_type null
-_cycles: &cycles 15000
+_cycles: &cycles 90000
 
 #Model arguments
 model:

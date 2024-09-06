@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --time=05:00:00
+#SBATCH --time=10:00:00
 #SBATCH --job-name=ignition
 #SBATCH --qos=preemptable
 #SBATCH --gres=gpu:a100:1
@@ -12,7 +12,7 @@
 #cpus-per-task per node should be num_workers per gpu
 
 TEST=ignition/hnet_offline_full
-TIME=00:04:00:00
+TIME=00:09:00:00
 PYTHON=/projects/cosi1728/software/anaconda/envs/compression/bin/python
 
 DATA_DIR=data/ignition
@@ -25,4 +25,4 @@ module load anaconda
 conda activate compression
 
 srun $PYTHON run.py --mode train --config $TEST --max_time $TIME --data_dir $SLURM_SCRATCH
-srun $PYTHON run.py --mode test --config $TEST/version_1 --data_dir $SLURM_SCRATCH
+srun $PYTHON run.py --mode test --config $TEST/version_2 --data_dir $SLURM_SCRATCH
