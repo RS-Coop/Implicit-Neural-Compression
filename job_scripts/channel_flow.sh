@@ -12,13 +12,13 @@
 #ntasks-per-node should match num_gpus
 #cpus-per-task per node should be num_workers per gpu
 
-TEST=channel_flow/hypernet_online
+TEST=channel_flow/hnet_offline_full
 TIME=00:14:00:00
 PYTHON=/projects/cosi1728/software/anaconda/envs/compression/bin/python
 
 DATA_DIR=data/channel_flow
-cp -r $DATA_DIR/points_64.npy $SLURM_SCRATCH
-cp -r $DATA_DIR/features_64_500.npy $SLURM_SCRATCH
+cp -r $DATA_DIR/points_64.npy $SLURM_SCRATCH/points.npy
+cp -r $DATA_DIR/features_64_500.npy $SLURM_SCRATCH/features.npy
 
 module purge
 module load anaconda

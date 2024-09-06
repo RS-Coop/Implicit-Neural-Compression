@@ -14,7 +14,7 @@ train:
   default_root_dir: "./lightning_logs" #str
   logger: True #bool
   log_every_n_steps: 1 #int
-  enable_progress_bar: True #bool
+  enable_progress_bar: False #bool
   # profiler: #str
   limit_val_batches: 0 #bool
   max_epochs: 1 #int
@@ -22,20 +22,20 @@ train:
 
 #Model and Data shared variables
 _sketch_type: &sketch_type "fjlt"
-_cycles: &cycles 200
+_cycles: &cycles 5000
 
 #Model arguments
 model:
-  # ckpt_path: "lightning_logs/ignition/batching/time/version_1/checkpoints/best-epoch=89.ckpt" #str, only use this if you want to continue training model from checkpoint
+  # ckpt_path: "lightning_logs/ignition/hypernet_offline/version_1/checkpoints/last.ckpt" #str, only use this if you want to continue training model from checkpoint
   output_activation: "Identity"
   hypernet_kwargs:
     hidden_features: 16
     blocks: 3
   inr_kwargs:
-    hidden_features: 16
+    hidden_features: 64
     blocks: 3
   loss_fn: "R3Loss"
-  learning_rate: 0.0001 #float
+  learning_rate: 1.e-4 #float
   scheduler: False
   sketch_type: *sketch_type
   cycles: *cycles
@@ -50,22 +50,18 @@ data:
   sample_factor: 0.05
   sketch_type: *sketch_type
   batch_size: 1 #int
-  channels: [0] #list[int]
+  channels: [0,1,2] #list[int]
   normalize: False #bool
   split: 1.0 #float [0,1]
   shuffle: False #bool
   buffer:
-    full:
-      size: 1 #int
-      cycles: *cycles #int
-      batch_size: 1 #int
-      step: 1 #int
+    full: null
     sketch:
       size: -1 #int
       cycles: *cycles #int
-      batch_size: 20 #int
-      step: 1 #bool
-      delay: True #bool
+      batch_size: 25 #int
+      step: 500 #bool
+      delay: False #bool
 
 #Miscellaneous arguments
 misc:
@@ -75,3 +71,4 @@ misc:
   compute_stats: True #bool
   export: True
   finetune: False
+  export_hnet: False

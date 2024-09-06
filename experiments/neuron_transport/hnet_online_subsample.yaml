@@ -35,7 +35,7 @@ model:
     hidden_features: 16
     blocks: 3
   loss_fn: "R3Loss"
-  learning_rate: 0.0001 #float
+  learning_rate: 1.e-4 #float
   scheduler: False
   sketch_type: *sketch_type
   cycles: *cycles
