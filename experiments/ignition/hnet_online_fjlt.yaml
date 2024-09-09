@@ -22,7 +22,7 @@ train:
 
 #Model and Data shared variables
 _sketch_type: &sketch_type "fjlt"
-_cycles: &cycles 200
+_cycles: &cycles 500
 
 #Model arguments
 model:
@@ -39,6 +39,7 @@ model:
   scheduler: False
   sketch_type: *sketch_type
   cycles: *cycles
+  loss_threshold: 1.e-2
 
 #PT LightningDataModule arguments
 data:
@@ -50,7 +51,7 @@ data:
   sample_factor: 0.05
   sketch_type: *sketch_type
   batch_size: 1 #int
-  channels: [0,1] #list[int]
+  channels: [0,1,2,3] #list[int]
   normalize: False #bool
   split: 1.0 #float [0,1]
   shuffle: False #bool

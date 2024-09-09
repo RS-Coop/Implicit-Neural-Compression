@@ -22,7 +22,7 @@ train:
 
 #Model and Data shared variables
 _sketch_type: &sketch_type "subsample"
-_cycles: &cycles 200
+_cycles: &cycles 300
 
 #Model arguments
 model:
@@ -39,6 +39,7 @@ model:
   scheduler: False
   sketch_type: *sketch_type
   cycles: *cycles
+  loss_threshold: 1.e-2
 
 #PT LightningDataModule arguments
 data:

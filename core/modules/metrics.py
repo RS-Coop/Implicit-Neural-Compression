@@ -25,7 +25,7 @@ def r3error(preds, targets, dim=1):
     n = torch.sum((preds-targets)**2, dim=dim)
     d = torch.sum((targets)**2, dim=dim)
 
-    return torch.sqrt(n/(d+1e-8))
+    return torch.sqrt(n/(d+1e-3))
 
 class R3Error(Metric):
     

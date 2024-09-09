@@ -39,6 +39,7 @@ model:
   scheduler: False
   sketch_type: *sketch_type
   cycles: *cycles
+  loss_threshold: 5.e-3
 
 #PT LightningDataModule arguments
 data:
