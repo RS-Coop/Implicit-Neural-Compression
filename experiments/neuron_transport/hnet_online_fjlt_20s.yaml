@@ -59,8 +59,8 @@ data:
     full:
       size: 1 #int
       cycles: *cycles #int
-      batch_size: 1 #int
-      step: 1 #int
+      batch_size: 20 #int
+      step: 20 #int
     sketch:
       size: -1 #int
       cycles: *cycles #int

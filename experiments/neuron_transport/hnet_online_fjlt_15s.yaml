@@ -21,12 +21,12 @@ train:
   # max_steps: #int
 
 #Model and Data shared variables
-_sketch_type: &sketch_type "subsample"
-_cycles: &cycles 30000
+_sketch_type: &sketch_type "fjlt"
+_cycles: &cycles 300
 
 #Model arguments
 model:
-  # ckpt_path: "lightning_logs/ignition/hypernet_offline/version_1/checkpoints/last.ckpt" #str, only use this if you want to continue training model from checkpoint
+  # ckpt_path: "lightning_logs/ignition/batching/time/version_1/checkpoints/best-epoch=89.ckpt" #str, only use this if you want to continue training model from checkpoint
   output_activation: "Identity"
   hypernet_kwargs:
     hidden_features: 16
@@ -56,13 +56,17 @@ data:
   split: 1.0 #float [0,1]
   shuffle: False #bool
   buffer:
-    full: null
+    full:
+      size: 1 #int
+      cycles: *cycles #int
+      batch_size: 15 #int
+      step: 15 #int
     sketch:
       size: -1 #int
       cycles: *cycles #int
       batch_size: 25 #int
-      step: 500 #bool
-      delay: False #bool
+      step: 1 #bool
+      delay: True #bool
 
 #Miscellaneous arguments
 misc:
