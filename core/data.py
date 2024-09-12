@@ -275,6 +275,9 @@ class DataModule(LightningDataModule):
 
         self.train, self.val, self.test, self.predict = None, None, None, None
 
+        #Buffer training
+        self.online = True if self.buffer else False
+
         return
     
     @property
@@ -293,15 +296,16 @@ class DataModule(LightningDataModule):
             #load dataset
             train_val = MeshDataset(self.points_path, self.features_path, self.channels, self.time_span, normalize=self.normalize, gradients=self.gradients)
 
-            if self.buffer.get("sketch"):
-                self.train = train_val
-                self.sketch = SketchDataset(train_val, sample_factor=self.sample_factor, sketch_type=self.sketch_type) if self.buffer['sketch'] else None
-
-            else:
+            if self.split != 1.0:
                 train_size = round(self.split*len(train_val))
                 val_size = len(train_val) - train_size
 
                 self.train, self.val = random_split(train_val, [train_size, val_size])
+            else:
+                self.train = train_val
+
+            if self.buffer.get("sketch"):
+                self.sketch = SketchDataset(self.train, sample_factor=self.sample_factor, sketch_type=self.sketch_type) if self.buffer['sketch'] else None
 
         if (stage == "test" or stage is None) and self.test is None:
             #load dataset
@@ -320,14 +324,12 @@ class DataModule(LightningDataModule):
     Used in Trainer.fit
     '''
     def train_dataloader(self):
-        full = self.buffer.get("full")
-        sketch = self.buffer.get("sketch")
 
-        if full or sketch:
+        if self.online:
 
             loaders = dict()
 
-            if full:
+            if self.buffer.get("full"):
                 full_loader = DataLoader(self.train,
                                             batch_sampler=Buffer(self.train.num_snapshots//self.time_span, **self.buffer['full']),
                                             num_workers=self.num_workers*self.trainer.num_devices,
@@ -337,7 +339,7 @@ class DataModule(LightningDataModule):
                 
                 loaders["full"] = full_loader
 
-            if sketch:
+            if self.buffer.get("sketch"):
                 sketch_loader = DataLoader(self.sketch,
                                             batch_sampler=Buffer(self.train.num_snapshots//self.time_span, **self.buffer['sketch']),
                                             num_workers=self.num_workers*self.trainer.num_devices,
