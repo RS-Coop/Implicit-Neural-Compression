@@ -275,12 +275,6 @@ class DataModule(LightningDataModule):
 
         self.train, self.val, self.test, self.predict = None, None, None, None
 
-        #online training
-        if self.buffer:
-            self.online = True
-        else:
-            self.online = False
-
         return
     
     @property
@@ -299,7 +293,7 @@ class DataModule(LightningDataModule):
             #load dataset
             train_val = MeshDataset(self.points_path, self.features_path, self.channels, self.time_span, normalize=self.normalize, gradients=self.gradients)
 
-            if self.online:
+            if self.buffer.get("sketch"):
                 self.train = train_val
                 self.sketch = SketchDataset(train_val, sample_factor=self.sample_factor, sketch_type=self.sketch_type) if self.buffer['sketch'] else None
 
@@ -326,11 +320,14 @@ class DataModule(LightningDataModule):
     Used in Trainer.fit
     '''
     def train_dataloader(self):
-        if self.online:
+        full = self.buffer.get("full")
+        sketch = self.buffer.get("sketch")
+
+        if full or sketch:
 
             loaders = dict()
 
-            if self.buffer.get("full"):
+            if full:
                 full_loader = DataLoader(self.train,
                                             batch_sampler=Buffer(self.train.num_snapshots//self.time_span, **self.buffer['full']),
                                             num_workers=self.num_workers*self.trainer.num_devices,
@@ -340,7 +337,7 @@ class DataModule(LightningDataModule):
                 
                 loaders["full"] = full_loader
 
-            if self.buffer.get("sketch"):
+            if sketch:
                 sketch_loader = DataLoader(self.sketch,
                                             batch_sampler=Buffer(self.train.num_snapshots//self.time_span, **self.buffer['sketch']),
                                             num_workers=self.num_workers*self.trainer.num_devices,
