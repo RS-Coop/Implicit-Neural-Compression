@@ -145,7 +145,7 @@ class MeshDataset(Dataset):
         idxs = torch.stack([torch.arange(idx*self.time_span, (idx+1)*self.time_span) for idx in idxs])
 
         #Normalized time
-        t_coord = (2*idxs/(self.num_snapshots-1)-1)
+        t_coord = (2*idxs/(self.num_snapshots-1)-1) if self.num_snapshots != 0 else 0.0*idxs
 
         #Coordinates
         x_coord = self.points[idxs,:,:]
@@ -214,7 +214,7 @@ class SketchDataset(MeshDataset):
         idxs = torch.stack([torch.arange(idx*self.time_span, (idx+1)*self.time_span) for idx in idxs])
 
         #Normalized time
-        t_coord = (2*idxs/(self.num_snapshots-1)-1)
+        t_coord = (2*idxs/(self.num_snapshots-1)-1) if self.num_snapshots != 0 else 0.0*idxs
 
         #Coordinates
         x_coord = self.points[idxs,:,:]

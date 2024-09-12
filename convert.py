@@ -10,7 +10,7 @@ for i, file in enumerate(natsorted(path.glob("*.txt"))):
     arr = np.loadtxt(file)
 
     #extract channels
-    arr = arr[:,[0,1,8]]
+    arr = arr[:,[1]] #just temperature
 
     #save
     np.save(path/f"features_{i}.npy", arr)
