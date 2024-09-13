@@ -44,6 +44,7 @@ class HyperINR(nn.Module):
 
         #inr
         self.inr = Siren(**inr_kwargs)
+        self.inr.requires_grad_(False)
         p = nn.utils.parameters_to_vector(self.inr.parameters())
 
         #hypernet
