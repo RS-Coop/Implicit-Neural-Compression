@@ -61,4 +61,4 @@ tensorboard --logdir=lightning_logs/
 ```
 
 ### Generating Figures
-The Jupyter Notebook [`Paper Figures`](./Paper%20Figures.ipynb) can be used to generate all paper figures and tables.
+The Jupyter Notebook [`Paper Results`](./Paper%20Results.ipynb) can be used to generate all paper figures and tables details.
