@@ -9,7 +9,7 @@ import torch
 from pytorch_lightning import Trainer
 
 from core.model import Model
-from core.data import DataModule
+from core.datamodule import DataModule
 
 from .utils.gif import make_gif
 from .utils.plots import make_error_plots

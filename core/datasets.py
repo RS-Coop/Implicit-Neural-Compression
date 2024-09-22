@@ -6,22 +6,19 @@ LightningDataModule documentation:
 '''
 
 import pathlib
+from natsort import natsorted
 from warnings import warn
 
 import numpy as np
 import torch
-from torch.utils.data import Dataset, DataLoader, random_split
-from pytorch_lightning import LightningDataModule
-from pytorch_lightning.utilities.combined_loader import CombinedLoader
-
-from core.modules.sampler import Buffer
+from torch.utils.data import Dataset
 
 from core.utils.sketch import sketch
 
 '''
 '''
-class MeshDataset(Dataset):
-    def __init__(self,
+class SingleDataset(Dataset):
+    def __init__(self,*,
             points_path,
             features_path,
             channels,
@@ -36,7 +33,7 @@ class MeshDataset(Dataset):
             #Features
             features = torch.from_numpy(np.load(features_path).astype(np.float32))
 
-            assert features.dim() == 3, f"Features has {features.dim()} dimensions, but should only have 3"
+            assert features.dim() == 3, f"Features has {features.dim()} dimensions, but should have 3"
 
             #move to channels last
             if channels_last == False:
@@ -181,7 +178,7 @@ class MeshDataset(Dataset):
 '''
 Create a sketch version of the given dataset by randomly sub-sampling.
 '''
-class SketchDataset(MeshDataset):
+class SketchSingleDataset(SingleDataset):
     def __init__(self,
             dataset,
             sample_factor,
@@ -190,9 +187,9 @@ class SketchDataset(MeshDataset):
 
         #hyper-parameters
         self.num_points = dataset.num_points
-        self.rank = round(sample_factor*dataset.num_points)
         self.num_snapshots = dataset.num_snapshots
         self.time_span = dataset.time_span
+        self.rank = round(sample_factor*dataset.num_points)
 
         #Initialize data
         self.points = dataset.points
@@ -223,175 +220,185 @@ class SketchDataset(MeshDataset):
         features = self.features[idxs,:,:]
 
         return (t_coord, x_coord), torch.flatten(features, start_dim=0, end_dim=1), (self.seeds[idxs], self.rank)
-
+    
 #################################################
 
 '''
 '''
-class DataModule(LightningDataModule):
-    '''
-    Input:
-        data_dir: path to dataset directory (usually absolute is more robust)
-        batch_size: torch dataloader batch size
-        num_workers: machine dependent, more workers means faster loading
-    '''
-    def __init__(self,
-            spatial_dim,
+class MultiDataset(Dataset):
+    def __init__(self,*,
             points_path,
             features_path,
-            batch_size,
             channels,
             time_span,
-            gradients = False,
-            buffer = None,
-            sample_factor = 0.01,
-            sketch_type = "fjlt",
-            data_dir = "./",
+            channels_last = True,
             normalize = True,
-            split = 0.8,
-            shuffle = True,
-            num_workers = 4,
-            persistent_workers = True,
-            pin_memory = True
+            gradients = False
         ):
         super().__init__()
 
-        #channels
-        if isinstance(channels, list):
-            assert len(channels) != 0
-        elif isinstance(channels, int):
-            channels = [i for i in range(channels)]
-        else:
-            raise ValueError("Channels must be a list or an integer")
+        #Set attributes
+        self.channels = channels
+        self.channels_last = channels_last
+
+        try:
+            #Features
+
+            #Get snapshot files
+            self.snapshot_files = natsorted(pathlib.Path(features_path).glob("*"))
+
+            if len(self.snapshot_files) == 0: raise Exception(f'No features have been found in: {features_path}')
+
+            if gradients:
+                raise NotImplementedError("Gradients not implemented for multi-file dataset.")
+            else:
+                self.gradients = None
+
+            #Points
+            points = torch.from_numpy(np.load(points_path).astype(np.float32))
+
+            if points.dim() == 2:
+                self.points = points.expand(len(self.snapshot_files), -1, -1)
+            elif points.dim() == 3:
+                self.points = points
+            else:
+                raise Exception(f'Points has incorrect number of dimensions')
+
+        except FileNotFoundError:
+            raise Exception(f'Error loading points {points_path} and/or features {features_path}')
+
+        except Exception as e:
+            raise e
         
-        args = locals()
-        args.pop('self')
+        #Normalize points
+        mx = torch.amax(self.points, dim=(0,1))
+        mi = torch.amin(self.points, dim=(0,1))
+        self.points = 2*(self.points-mi)/(mx-mi)-1
 
-        for key, value in args.items():
-            setattr(self, key, value)
+        self.denorm_p = lambda p: ((p+1)/2)*(mx-mi).to(p.device) + mi.to(p.device)
+        
+        #Normalize features
+        if normalize != False:
+            raise NotImplementedError("Normalization not implemented for multi-file dataset.")
+        
+        self.denorm_f = lambda f: f
 
-        self.points_path = pathlib.Path(self.data_dir).joinpath(self.points_path)
-        self.features_path = pathlib.Path(self.data_dir).joinpath(self.features_path)
+        #
+        self.num_points = self.points.shape[1]
+        self.num_snapshots = len(self.snapshot_files)
 
-        self.train, self.val, self.test, self.predict = None, None, None, None
-
-        #Buffer training
-        self.online = True if self.buffer else False
+        if self.num_snapshots%time_span != 0: warn("Number of training snapshots not evenly divisible by time span!")
+        self.time_span = time_span
 
         return
     
     @property
-    def input_shape(self):
-        return (1, self.time_span), (1, 1, 1, self.spatial_dim)
+    def size(self):
+        return self.num_snapshots*self.num_points*len(self.channels)
 
-    @property
-    def output_shape(self):
-        return (1, 1, len(self.channels))
+    def __len__(self):
+        return self.num_snapshots//self.time_span
+    
+    def _loaditem(self, idx):
 
-    '''
-    Load and preprocess data
-    '''
-    def setup(self, stage=None):
-        if (stage == "fit" or stage is None) and (self.train is None or self.val is None):
-            #load dataset
-            train_val = MeshDataset(self.points_path, self.features_path, self.channels, self.time_span, normalize=self.normalize, gradients=self.gradients)
+        file = self.snapshot_files[idx]
 
-            if self.split != 1.0:
-                train_size = round(self.split*len(train_val))
-                val_size = len(train_val) - train_size
-
-                self.train, self.val = random_split(train_val, [train_size, val_size])
-            else:
-                self.train = train_val
-
-            if self.buffer.get("sketch"):
-                self.sketch = SketchDataset(self.train, sample_factor=self.sample_factor, sketch_type=self.sketch_type) if self.buffer['sketch'] else None
-
-        if (stage == "test" or stage is None) and self.test is None:
-            #load dataset
-            self.test = MeshDataset(self.points_path, self.features_path, self.channels, self.time_span, normalize=self.normalize, gradients=False)
-
-        if (stage == "predict" or stage is None) and self.predict is None:
-            #load dataset
-            self.predict = MeshDataset(self.points_path, self.features_path, self.channels, self.time_span, normalize=self.normalize, gradients=False)
-
-        if stage not in ["fit", "test", "predict", None]:
-            raise ValueError("Stage must be one of fit, test, predict")
-        
-        return
-
-    '''
-    Used in Trainer.fit
-    '''
-    def train_dataloader(self):
-
-        if self.online:
-
-            loaders = dict()
-
-            if self.buffer.get("full"):
-                full_loader = DataLoader(self.train,
-                                            batch_sampler=Buffer(self.train.num_snapshots//self.time_span, **self.buffer['full']),
-                                            num_workers=self.num_workers*self.trainer.num_devices,
-                                            persistent_workers=self.persistent_workers,
-                                            pin_memory=self.pin_memory,
-                                            collate_fn=lambda x: x)
-                
-                loaders["full"] = full_loader
-
-            if self.buffer.get("sketch"):
-                sketch_loader = DataLoader(self.sketch,
-                                            batch_sampler=Buffer(self.train.num_snapshots//self.time_span, **self.buffer['sketch']),
-                                            num_workers=self.num_workers*self.trainer.num_devices,
-                                            persistent_workers=self.persistent_workers,
-                                            pin_memory=self.pin_memory,
-                                            collate_fn=lambda x: x)
-                
-                loaders["sketch"] = sketch_loader
-
-            return CombinedLoader(loaders, mode='max_size_cycle')
-
+        if file.suffix == ".npy":
+            features = np.load(file).astype(np.float32)
         else:
-            return DataLoader(self.train,
-                            batch_size=self.batch_size,
-                            shuffle=self.shuffle,
-                            num_workers=self.num_workers*self.trainer.num_devices,
-                            persistent_workers=self.persistent_workers,
-                            pin_memory=self.pin_memory,
-                            collate_fn=lambda x: x)
+            features = np.loadtxt(file).astype(np.float32)
 
-    '''
-    Used in Trainer.fit
-    '''
-    def val_dataloader(self):
-        return DataLoader(self.val,
-                            batch_size=self.batch_size,
-                            num_workers=self.num_workers*self.trainer.num_devices,
-                            persistent_workers=self.persistent_workers,
-                            pin_memory=self.pin_memory,
-                            collate_fn=lambda x: x)
-    '''
-    [Optional] Used in Trainer.test
-    '''
-    def test_dataloader(self):
-        return DataLoader(self.test,
-                            batch_size=self.batch_size,
-                            num_workers=self.num_workers*self.trainer.num_devices,
-                            persistent_workers=self.persistent_workers,
-                            pin_memory=self.pin_memory,
-                            collate_fn=lambda x: x)
-    '''
-    [Optional] Used in Trainer.predict
-    '''
-    def predict_dataloader(self):
-        return DataLoader(self.predict,
-                            batch_size=self.batch_size,
-                            num_workers=self.num_workers*self.trainer.num_devices,
-                            persistent_workers=self.persistent_workers,
-                            pin_memory=self.pin_memory,
-                            collate_fn=lambda x: x)
-    '''
-    [Optional] Clean up data
-    '''
-    def teardown(self, stage=None):
-        pass
+        features = torch.from_numpy(features)
+
+        assert features.dim() == 2, f"Features has {features.dim()} dimensions, but should only have 2"
+
+        #Move to channels last
+        if self.channels_last == False:
+            features = torch.movedim(features, 0, 1)
+
+        #Extract channels
+        features = features[:,self.channels]
+
+        return features
+    
+    def __getitems__(self, idxs):
+        if isinstance(idxs, list): idxs = torch.tensor(idxs)
+
+        if idxs.numel() == 0: return None, None
+
+        #Convert window idxs to snapshot idxs
+        idxs = torch.stack([torch.arange(idx*self.time_span, (idx+1)*self.time_span) for idx in idxs])
+
+        #Normalized time
+        t_coord = (2*idxs/(self.num_snapshots-1)-1) if self.num_snapshots != 0 else 0.0*idxs
+
+        #Coordinates
+        x_coord = self.points[idxs,:,:]
+
+        #Features
+        features = torch.stack([self._loaditem(i) for i in idxs])
+
+        return (t_coord, x_coord), features
+    
+    def get_points(self, denormalize=True):
+
+        if denormalize:
+            points = self.denorm_p(self.points)
+        else:
+            points = self.points
+
+        return points[0,:,:] #NOTE: Assuming points are static across time
+    
+    def get_features(self, denormalize=True):
+
+        if denormalize:
+            warn("Features were never normalized to begin with.")
+
+        return torch.stack([self._loaditem(i) for i in range(self.num_snapshots)])
+    
+#################################################
+
+'''
+Create a sketch version of the given dataset by randomly sub-sampling.
+'''
+class SketchMultiDataset(MultiDataset):
+    def __init__(self,
+            dataset,
+            sample_factor,
+            sketch_type
+        ):
+
+        #hyper-parameters
+        self.dataset = dataset
+        self.rank = round(sample_factor*dataset.num_points)
+        self.sketch_type = sketch_type
+
+        #Sketching seeds and sketch features
+        #NOTE: I think this isn't ideal, but there are some issues trying to generate seeds other ways
+        self.seeds = torch.randint(100000, (self.dataset.num_snapshots,))
+
+        return
+    
+    def _loaditem(self, idx):
+        features = self.dataset._loaditem(idx)
+
+        return sketch(features.expand(1,-1,-1), (self.seeds[idx], self.rank), sketch_type=self.sketch_type)
+    
+    def __getitems__(self, idxs):
+        if isinstance(idxs, list): idxs = torch.tensor(idxs)
+
+        if idxs.numel() == 0: return None, None, None
+
+        #Convert window idxs to snapshot idxs
+        idxs = torch.stack([torch.arange(idx*self.dataset.time_span, (idx+1)*self.dataset.time_span) for idx in idxs])
+
+        #Normalized time
+        t_coord = (2*idxs/(self.dataset.num_snapshots-1)-1) if self.dataset.num_snapshots != 0 else 0.0*idxs
+
+        #Coordinates
+        x_coord = self.dataset.points[idxs,:,:]
+
+        #Features
+        features = torch.cat([self._loaditem(i) for i in idxs])
+
+        return (t_coord, x_coord), features, (self.seeds[idxs], self.rank)

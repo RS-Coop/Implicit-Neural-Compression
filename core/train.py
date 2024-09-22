@@ -11,7 +11,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from pytorch_lightning.profilers import AdvancedProfiler
 
 from core.model import Model
-from core.data import DataModule
+from core.datamodule import DataModule
 
 from .utils.utils import Logger, FineTuner
 

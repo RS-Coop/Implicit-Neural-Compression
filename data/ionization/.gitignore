@@ -1,3 +1,4 @@
 *
 !.gitignore
-!ionization_convert.py
+!ionization_*.py
+!features*

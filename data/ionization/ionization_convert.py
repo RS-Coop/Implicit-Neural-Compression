@@ -2,15 +2,14 @@ import numpy as np
 import pathlib
 from natsort import natsorted
 
+path = pathlib.Path("data/ionization/features")
+files = natsorted(path.glob("*.txt.*"))
 
-path = pathlib.Path("data/ionization/")
+part_paths = [pathlib.Path(f"data/ionization/features_{i}") for i in range(4)]
 
-for i, file in enumerate(natsorted(path.glob("*.txt"))):
-    #convert to numpy
-    arr = np.loadtxt(file)
+for file in files:
+    data = np.loadtxt(file)[:,[1]]
+    data = data.reshape(4,-1,1)
 
-    #extract channels
-    arr = arr[:,[1]] #just temperature
-
-    #save
-    np.save(path/f"features_{i}.npy", arr)
+    for i in range(4):
+        np.savetxt(part_paths[i]/file.name, data[i,...])
