@@ -29,11 +29,11 @@ model:
   # ckpt_path: "lightning_logs/ignition/hypernet_offline/version_1/checkpoints/last.ckpt" #str, only use this if you want to continue training model from checkpoint
   output_activation: "Identity"
   hypernet_kwargs:
-    hidden_features: 42
+    hidden_features: 16
     blocks: 3
   inr_kwargs:
-    hidden_features: 42
-    blocks: 3
+    hidden_features: 64
+    blocks: 4
   loss_fn: "R3Loss"
   learning_rate: 1.e-4 #float
   scheduler: False
@@ -70,6 +70,6 @@ misc:
   make_gif: False #bool
   make_error_plots: True
   compute_stats: True #bool
-  export: False
+  export: True
   finetune: False
   export_hnet: False
