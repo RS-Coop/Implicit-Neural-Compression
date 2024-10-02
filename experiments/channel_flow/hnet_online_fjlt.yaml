@@ -74,6 +74,6 @@ misc:
   make_gif: False #bool
   make_error_plots: True
   compute_stats: True #bool
-  export: False
+  export: True
   finetune: False
   export_hnet: False
