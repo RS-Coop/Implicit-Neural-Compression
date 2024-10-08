@@ -2,14 +2,25 @@ import numpy as np
 import pathlib
 from natsort import natsorted
 
-path = pathlib.Path("data/ionization/features")
-files = natsorted(path.glob("*.txt.*"))
+p = 48
 
-part_paths = [pathlib.Path(f"data/ionization/features_{i}") for i in range(4)]
+root = pathlib.Path("data/ionization/")
 
-for file in files:
-    data = np.loadtxt(file)[:,[1]]
-    data = data.reshape(4,-1,1)
+#Points
+points = np.load(root/"points.npy").reshape(p, -1, 3)
 
-    for i in range(4):
-        np.savetxt(part_paths[i]/file.name, data[i,...])
+for i in range(p):
+    np.save(root/f"points_{i}.npy", points[i,...])
+
+#Feature directories
+for i in range(p):
+    (root/f"features_{i}/").mkdir(exist_ok=True)
+
+#Features
+for file in natsorted((root/"features").glob("*.txt.*")):
+    # data = np.loadtxt(file)[:,[1]]
+    data = np.loadtxt(file)
+    data = data.reshape(p,-1,1)
+
+    for i in range(p):
+        np.savetxt(root/f"features_{i}"/file.name, data[i,...])
