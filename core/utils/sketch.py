@@ -37,9 +37,9 @@ def subsample(f, rank, device):
 
     n = f.shape[0]
 
-    ind = np.sqrt(n/rank)*(torch.randperm(n, device='cpu')[:rank]).to(device)
+    ind = (torch.randperm(n, device='cpu')[:rank]).to(device)
 
-    return f[ind]
+    return np.sqrt(n/rank)*f[ind]
 
 #################################################
 #Gaussian
