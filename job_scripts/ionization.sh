@@ -12,12 +12,12 @@
 #ntasks-per-node should match num_gpus
 #cpus-per-task per node should be num_workers per gpu
 
-TEST=ionization/hnet_online_fjlt_1%
+TEST=ionization/hnet_online_subsample_1%
 TIME=00:23:00:00
 PYTHON=/projects/cosi1728/software/anaconda/envs/compression/bin/python
 
 DATA_DIR=data/ionization
-cp -r $DATA_DIR/points.npy $SLURM_SCRATCH/points.npy
+cp -r $DATA_DIR/points_0.npy $SLURM_SCRATCH/points.npy
 cp -r $DATA_DIR/features_0 $SLURM_SCRATCH/features
 
 module purge
