@@ -310,7 +310,10 @@ class MultiDataset(Dataset):
 
         features = torch.from_numpy(features)
 
-        assert features.dim() == 2, f"Features has {features.dim()} dimensions, but should only have 2"
+        #NOTE: Changing this just for the ionization data
+        # assert features.dim() == 2, f"Features has {features.dim()} dimensions, but should only have 2"
+        assert features.dim() == 1, f"Features has {features.dim()} dimensions, but should only have 2"
+        features = features.unsqueeze(dim=1)
 
         #Move to channels last
         if self.channels_last == False:
