@@ -27,7 +27,7 @@ Our work can be cited using the Bibtex entry in [`CITATION`](./CITATION).
 ### Environment Setup
 The file `environment.yaml` contains a list of dependencies, and it can be used to generate an anaconda environment with the following command:
 ```console
-conda create -f=environment.yaml -n=compression
+conda env create --file=environment.yaml --name=compression
 ```
 which will install all necessary packages for this template in the conda environment `compression`.
 
