@@ -17,6 +17,7 @@ DATA_DIR=/gscratch/amath/cooper/data/channel_flow
 TIME=00:29:00:00
 
 module purge
+source ~/.bashrc #For conda
 
 conda activate compression
 
