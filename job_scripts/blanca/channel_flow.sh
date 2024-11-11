@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --time=24:00:00
+#SBATCH --time=3:00:00
 #SBATCH --job-name=channel_flow
 #SBATCH --qos=preemptable
 #SBATCH --gres=gpu:a100:1
@@ -12,8 +12,8 @@
 #ntasks-per-node should match num_gpus
 #cpus-per-task per node should be num_workers per gpu
 
-TEST=channel_flow/hnet_online_fjlt
-TIME=00:23:00:00
+TEST=channel_flow/hnet_online_baseline
+TIME=00:2:30:00
 PYTHON=/projects/cosi1728/software/anaconda/envs/compression/bin/python
 
 DATA_DIR=data/channel_flow
