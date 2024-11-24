@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --time=02:30:00
+#SBATCH --time=08:30:00
 #SBATCH --job-name=neuron_transport
 #SBATCH --qos=preemptable
 #SBATCH --gres=gpu:a100:1
@@ -12,8 +12,8 @@
 #ntasks-per-node should match num_gpus
 #cpus-per-task per node should be num_workers per gpu
 
-TEST=neuron_transport/hnet_online_baseline
-TIME=00:02:00:00
+TEST=neuron_transport/hnet_online_subsample_%_3
+TIME=00:08:00:00
 PYTHON=/projects/cosi1728/software/anaconda/envs/compression/bin/python
 
 DATA_DIR=data/neuron_transport
