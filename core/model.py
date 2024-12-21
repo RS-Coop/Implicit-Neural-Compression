@@ -167,7 +167,7 @@ class Model(LightningModule):
             if target_loss <= self.loss_threshold:
                 print("Target loss below threshold...")
                 self.compute = False
-                return
+                return #should we not return and do one more step instead
 
             opt = self.optimizers()
             opt.zero_grad()

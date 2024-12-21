@@ -21,18 +21,15 @@ train:
   # max_steps: #int
 
 #Model and Data shared variables
-_sketch_type: &sketch_type "fjlt"
-_cycles: &cycles 300
+_sketch_type: &sketch_type "subsample"
+_cycles: &cycles 500
 
 #Model arguments
 model:
   # ckpt_path: "lightning_logs/ignition/batching/time/version_1/checkpoints/best-epoch=89.ckpt" #str, only use this if you want to continue training model from checkpoint
   output_activation: "Identity"
-  hypernet_kwargs:
-    hidden_features: 16
-    blocks: 3
   inr_kwargs:
-    hidden_features: 64
+    hidden_features: 62
     blocks: 4
   loss_fn: "R3Loss"
   learning_rate: 1.e-4 #float
@@ -48,10 +45,10 @@ data:
   features_path: "features.npy" #str
   time_span: 1 #int
   gradients: False #bool
-  sample_factor: 0.0015
+  sample_factor: 0.007
   sketch_type: *sketch_type
   batch_size: 1 #int
-  channels: [0,1,2] #list[int]
+  channels: [0,1,2,3] #list[int]
   normalize: False #bool
   split: 1.0 #float [0,1]
   shuffle: False #bool
@@ -64,7 +61,7 @@ data:
     sketch:
       size: -1 #int
       cycles: *cycles #int
-      batch_size: 25 #int
+      batch_size: 45 #int
       step: 1 #bool
       delay: True #bool
 
