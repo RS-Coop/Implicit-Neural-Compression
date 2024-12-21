@@ -43,7 +43,7 @@ model:
 
 #PT LightningDataModule arguments
 data:
-  spatial_dim: 3 #int
+  spatial_dim: 2 #int
   points_path: "points.npy" #str
   features_path: "features.npy" #str
   time_span: 1 #int
