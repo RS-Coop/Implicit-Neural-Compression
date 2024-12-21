@@ -1,20 +1,20 @@
 #!/bin/bash
-#SBATCH --job-name=neuron_transport
+#SBATCH --job-name=ignition
 #SBATCH --account=amath
 #SBATCH --partition=gpu-l40s
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=64G
+#SBATCH --mem=16G
 #SBATCH --gpus=1
 #SBATCH --time=08:00:00
 
 #NOTE: ntasks-per-node should match num_gpus
 #NOTE: cpus-per-task per node should be num_workers per gpu
 
-TEST=neuron_transport/hnet_online_subsample_%_0
-DATA_DIR=/gscratch/amath/cooper/data/neuron_transport
-TIME=00:07:00:00
+TEST=neuron_transport/tinr_online_fjlt_0.7%
+DATA_DIR=/gscratch/amath/cooper/data/ignition
+TIME=00:07:30:00
 
 module purge
 source ~/.bashrc #For conda
