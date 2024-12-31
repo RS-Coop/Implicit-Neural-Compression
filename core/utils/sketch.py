@@ -14,6 +14,8 @@ def sketch(features, sketch_stuff, sketch_type="fjlt", device='cpu'):
         sketch_func = fjlt
     elif sketch_type == "gaussian":
         sketch_func = gaussian
+    elif sketch_type == None: #For hypernet regularization compatibility
+        return torch.zeros(features.shape[0], 1, 1)
     else:
         raise ValueError(f"Unsupported sketch type: {sketch_type}")
 

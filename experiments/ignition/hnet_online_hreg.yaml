@@ -48,7 +48,7 @@ data:
   features_path: "features.npy" #str
   time_span: 1 #int
   gradients: False #bool
-  sample_factor: null
+  sample_factor: 0
   sketch_type: *sketch_type
   batch_size: 1 #int
   channels: [0,1,2,3] #list[int]
