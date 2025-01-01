@@ -152,16 +152,14 @@ class Model(LightningModule):
 
             l1 = self.loss_fn(self(c1), f1) if c1 is not None else torch.tensor([0.0], requires_grad=True, device=self.device)
             #l2 = self.loss_fn(sketch(self(c2), s, sketch_type=self.sketch_type, device=self.device), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #sketch loss
-            l3 = self.compute_reg(c2[0]) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #hypernet output loss #NOTE: HREG
+            l2 = self.compute_reg(c2[0]) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #hypernet output loss #NOTE: HREG
 
-            # loss = l1 + 5*l2
-            loss = l1 + 5*l3 #NOTE: HREG
+            loss = l1 + 5*l2
 
-            self.log('full_loss', l1, on_step=True, on_epoch=False, sync_dist=True, batch_size=f1.shape[0] if f1 is not None else 1)
-            # self.log('sketch_loss', l2, on_step=True, on_epoch=False, sync_dist=True, batch_size=f2.shape[0] if f2 is not None else 1)
-            self.log('hreg_loss', l3, on_step=True, on_epoch=False, sync_dist=True, batch_size=f2.shape[0] if f2 is not None else 1) #NOTE: HREG
+            self.log('loss_full', l1, on_step=True, on_epoch=False, sync_dist=True, batch_size=f1.shape[0] if f1 is not None else 1)
+            self.log('loss_reg', l2, on_step=True, on_epoch=False, sync_dist=True, batch_size=f2.shape[0] if f2 is not None else 1)
 
-            target_loss = l1 if c1 is not None else l3 #l2 #NOTE: HREG
+            target_loss = l1 if c1 is not None else l2
 
             if target_loss <= self.loss_threshold:
                 print("Target loss below threshold...")

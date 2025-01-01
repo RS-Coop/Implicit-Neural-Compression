@@ -34,7 +34,7 @@ model:
   inr_kwargs:
     hidden_features: 16
     blocks: 3
-  loss_fn: "R3Loss"
+  loss_fn: "L1Loss"
   learning_rate: 1.e-4 #float
   scheduler: False
   sketch_type: *sketch_type
