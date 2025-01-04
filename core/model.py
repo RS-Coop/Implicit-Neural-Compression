@@ -140,7 +140,7 @@ class Model(LightningModule):
         
             # #Checkpoint for loss regularization
             # print("CHECKPOINTING")
-            self.checkpoint() #NOTE: HREG
+            # self.checkpoint() #NOTE: HREG
 
             # #Continuous backprop
             # if c2 is not None:
@@ -151,8 +151,8 @@ class Model(LightningModule):
             (c1, f1), (c2, f2, s) = self.unpack(batch)
 
             l1 = self.loss_fn(self(c1), f1) if c1 is not None else torch.tensor([0.0], requires_grad=True, device=self.device)
-            #l2 = self.loss_fn(sketch(self(c2), s, sketch_type=self.sketch_type, device=self.device), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #sketch loss
-            l2 = self.compute_reg(c2[0]) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #hypernet output loss #NOTE: HREG
+            l2 = self.loss_fn(sketch(self(c2), s, sketch_type=self.sketch_type, device=self.device), f2) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #sketch loss
+            # l2 = self.compute_reg(c2[0]) if c2 is not None else torch.tensor([0.0], requires_grad=True, device=self.device) #hypernet output loss #NOTE: HREG
 
             loss = l1 + 5*l2
 

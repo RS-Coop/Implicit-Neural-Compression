@@ -12,7 +12,7 @@
 #NOTE: ntasks-per-node should match num_gpus
 #NOTE: cpus-per-task per node should be num_workers per gpu
 
-TEST=ignition/tinr_online_fjlt_0.7%
+TEST=ignition/hnet_online_fjlt_0.7%
 DATA_DIR=/gscratch/amath/cooper/data/ignition
 TIME=00:07:30:00
 
