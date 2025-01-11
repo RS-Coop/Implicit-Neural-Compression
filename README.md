@@ -8,10 +8,20 @@ Submitted to []()
 
 ## Abstract
 
-## License \& Citation
-All source cod is made available under an MIT license. You can freely use and modify the code, without warranty, so long as you provide attribution to the authors. See [`LICENSE`](./LICENSE) for the full text. 
+We present a novel online training protocol which employs limited memory buffers of full and sketched data samples, where the sketched data is leveraged to prevent catastrophic forgetting. Theoretical motivation for our use of sketching as a regularizer is presented via a simple Johnson-Lindenstrauss informed result. While our methods may be of wider interest in the field of continuous learning, we specifically target in-situ neural compression using implicit neural representation based hypernetworks. We evaluate our method on a variety of complex simulation data in two and three dimensions, over long time horizons, and across non-uniform and non-cartesian meshes. On these tasks, we show strong reconstruction performance at high compression rates. Most importantly, on all of our tasks, we show sketching is effective at guaranteeing approximate offline performance in the online setting.
 
-Our work can be cited using the Bibtex entry in [`CITATION`](./CITATION).
+## License \& Citation
+All source code is made available under an MIT license. You can freely use and modify the code, without warranty, so long as you provide attribution to the authors. See [`LICENSE`](./LICENSE) for the full text. 
+
+Our work can be cited using the following bibtex entry:
+```bibtex
+@article{simpson2025inc,
+  title = {{Sketch Based Online Training of Implicit Neural Compressors for Scientific Simulations}},
+  authors = {Simpson, Cooper and Becker, Stephen and Doostan, Alireza},
+  year = {2025},
+  journal = {arXiv}
+}
+```
 
 ## Reproducibility
 
@@ -38,13 +48,7 @@ pip install -e .
 Although, the main experiment script can still be run without doing this.
 
 ### Data Acquisition
-The *Ignition*, *Neuron Transport*, and *Channel Flow* datasets used in our paper can be downloaded using Git LFS using the following command:
-```console
-...
-```
-Note that *Channel Flow* comes from the [JHU Turbulence Database](https://turbulence.idies.jhu.edu/datasets/wallBoundedTurbulence/channelFlow), but we use a trimmed variant.
-
-The *Ionization* dataset can be accessed at the [IEEE Visualization 2008 Design Contest](https://sciviscontest.ieeevis.org/2008/data.html) website. We use the second channel, temperature, and the first 100 snapshots of the available 200. Download the data into [`data/ionization/`](./data/ionization/), unzip, and use the script [`ionization_convert.py`](./data/ionization/ionization_convert.py) to convert the unzipped snapshot files into `.npy` files and generate an associated `points.npy` file.
+The *Ignition* and *Neuron Transport* datasets are not publically available, and the *Channel Flow* dataset is a trimmed variant of the full version from the [JHU Turbulence Database](https://turbulence.idies.jhu.edu/datasets/wallBoundedTurbulence/channelFlow). **Please** reach out if you would like access or further information.
 
 ### Running Experiments
 Use the following command to run an experiment:
