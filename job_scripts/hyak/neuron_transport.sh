@@ -12,7 +12,7 @@
 #NOTE: ntasks-per-node should match num_gpus
 #NOTE: cpus-per-task per node should be num_workers per gpu
 
-TEST=neuron_transport/hnet_online_subsample_%_0
+TEST=neuron_transport/tinr_offline_full
 DATA_DIR=/gscratch/amath/cooper/data/neuron_transport
 TIME=00:07:00:00
 
