@@ -59,7 +59,7 @@ data:
     full:
       size: -1
       cycles: *cycles
-      batch_size: 25
+      batch_size: 10
       step: 500
     sketch: null
 
