@@ -22,14 +22,14 @@ train:
 
 #Model and Data shared variables
 _sketch_type: &sketch_type null
-_cycles: &cycles 90000
+_cycles: &cycles 120000
 
 #Model arguments
 model:
   # ckpt_path: "lightning_logs/ignition/batching/time/version_1/checkpoints/best-epoch=89.ckpt" #str, only use this if you want to continue training model from checkpoint
   output_activation: "Identity"
   inr_kwargs:
-    hidden_features: 128
+    hidden_features: 64
     blocks: 5
   loss_fn: "R3Loss"
   learning_rate: 1.e-4 #float

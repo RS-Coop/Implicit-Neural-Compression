@@ -7,14 +7,14 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=64G
 #SBATCH --gpus=1
-#SBATCH --time=08:00:00
+#SBATCH --time=24:00:00
 
 #NOTE: ntasks-per-node should match num_gpus
 #NOTE: cpus-per-task per node should be num_workers per gpu
 
 TEST=neuron_transport/tinr_offline_full
 DATA_DIR=/gscratch/amath/cooper/data/neuron_transport
-TIME=00:07:00:00
+TIME=00:23:00:00
 
 module purge
 source ~/.bashrc #For conda
