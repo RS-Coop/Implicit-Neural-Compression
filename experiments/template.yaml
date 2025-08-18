@@ -4,32 +4,38 @@
 #Documentation: https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
 #Comment out options you aren't using
 train:
-  accelerator: #str e.g. "gpu"
-  devices: #int
-  num_nodes: #int
-  strategy: #str
-  precision: #str
+  accelerator: "auto" #str e.g. "gpu"
+  devices: "auto" #int
+  # num_nodes: #int
+  # strategy: #str
+  # precision: #str
   enable_checkpointing: #bool
   check_val_every_n_epoch: #int
   default_root_dir: #str
   logger: #bool
   log_every_n_steps: #int
   enable_progress_bar: #bool
-  profiler: #str
+  # profiler: #str
   limit_val_batches: #int
   max_epochs: #int
-  max_steps: #int
+  # max_steps: #int
 
 #Model arguments
 model:
-  ckpt_path: #str, only use this if you want to continue training model from checkpoint
-  inr_type: #str
-  output_activation: #str
-  hidden_features: #int
-  blocks: #int
-  loss_fn: #str
+  # ckpt_path: #str, only use this if you want to continue training model from checkpoint
+  output_activation: #string, torch.nn
+  hypernet_kwargs:
+    hidden_features: #int
+    blocks: #int
+  inr_kwargs:
+    hidden_features: #int
+    blocks: #int
+  loss_fn: #string, torch.nn or custom
   learning_rate: #float
   scheduler: #bool
+  sketch_type: #string, fjlt or subsample
+  cycles: #int
+  loss_threshold: #float
 
 #PT LightningDataModule arguments
 data:
@@ -38,6 +44,8 @@ data:
   points_path: #str
   features_path: #str
   gradients: #bool
+  sample_factor: #float
+  sketch_type: #string, fjlt or subsample
   batch_size: #int
   channels: #list[int]
   normalize: #bool
@@ -48,12 +56,13 @@ data:
       size: #int
       cycles: #int
       batch_size: #int
-      slide: #bool
+      step: #int
     coarse:
       size: #int
       cycles: #int
       batch_size: #int
-      slide: #bool
+      step: #int
+      delay: #bool
 
 #Miscellaneous arguments
 misc:
@@ -63,3 +72,4 @@ misc:
   make_error_plots: #bool
   export: #bool
   finetune: #bool
+  export_hnet: #bool

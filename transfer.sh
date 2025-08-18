@@ -1,12 +1,6 @@
 #!/bin/bash
 
-if [ $1 == "blanca" ]
-then
-    sshPATH=cosi1728@login.rc.colorado.edu:/projects/cosi1728/Implicit-Neural-Compression
-elif [ $1 == "hyak" ]
-then
-    sshPATH=rscooper@klone.hyak.uw.edu:projects/Implicit-Neural-Compression
-fi
+sshPATH=rscooper@klone.hyak.uw.edu:projects/Implicit-Neural-Compression
 
 if [ $2 == "scp" ]
 then
