@@ -14,6 +14,47 @@ from torchmetrics import Metric
 ################################################################################
 
 '''
+Mean squared error (MSE).
+
+Input:
+    preds, target: tensors of shape (T, N, C)
+'''
+def mse(preds, targets, dim=1):
+    assert preds.shape == targets.shape, f"{preds.shape} does not equal {targets.shape}"
+
+    return torch.sum((preds-targets)**2, dim=dim) 
+
+class MSE(Metric):
+    
+    #metric attributes
+    is_differentiable = True
+    higher_is_better = False
+    full_state_update = False
+
+    def __init__(self, num_channels):
+        super().__init__()
+        self.add_state("error", default=torch.zeros(num_channels), dist_reduce_fx="sum")
+        self.add_state("max", default=torch.zeros(num_channels), dist_reduce_fx="max")
+        self.add_state("num_samples", default=torch.tensor(0), dist_reduce_fx="sum")
+
+    def update(self, preds: torch.Tensor, targets: torch.Tensor):
+        
+        err = mse(preds, targets)
+
+        self.error += torch.sum(err, dim=0)
+        self.max = torch.maximum(torch.amax(err, dim=0), self.max)
+        self.num_samples += err.shape[0]
+
+    def compute(self, reduce_channels=False):
+        err = self.error/self.num_samples
+
+        if reduce_channels: err = torch.mean(err)
+
+        return err
+
+################################################################################
+
+'''
 Root Relative Reconstruction (R3) Error.
 
 Input:

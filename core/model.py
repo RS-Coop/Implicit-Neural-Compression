@@ -12,7 +12,7 @@ import torchmetrics as tm
 
 import copy
 
-from core.modules.metrics import R3Error, RPWError, RFError, PSNR
+from core.modules.metrics import R3Error, RPWError, RFError, PSNR, MSE
 from core.modules.loss import R3Loss, RPWLoss, W2Loss
 
 from core.modules.siren import INR
@@ -82,7 +82,7 @@ class Model(LightningModule):
         #Metrics
         self.error = R3Error(num_channels=output_shape[2])
             
-        self.test_metrics = tm.MetricCollection([RPWError(num_channels=output_shape[2]), RFError(num_channels=output_shape[2]), PSNR(num_channels=output_shape[2])])
+        self.test_metrics = tm.MetricCollection([RPWError(num_channels=output_shape[2]), RFError(num_channels=output_shape[2]), PSNR(num_channels=output_shape[2]), MSE(num_channels=output_shape[2])])
 
         self.prefix = ''
         self.denormalize = None
