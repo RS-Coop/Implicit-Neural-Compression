@@ -7,14 +7,14 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G
 #SBATCH --gpus=1
-#SBATCH --time=08:00:00
+#SBATCH --time=01:00:00
 
 #NOTE: ntasks-per-node should match num_gpus
 #NOTE: cpus-per-task per node should be num_workers per gpu
 
-TEST=ignition/hnet_online_fjlt_0.7%
+TEST=ignition/hnet_online_manifold
 DATA_DIR=/gscratch/amath/cooper/data/ignition
-TIME=00:07:30:00
+TIME=00:01:00:00
 
 module purge
 source ~/.bashrc #For conda

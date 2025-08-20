@@ -7,14 +7,14 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=64G
 #SBATCH --gpus=1
-#SBATCH --time=24:00:00 #offline -> 10 , subsample -> 20, fjlt -> 32, baseline -> 2
+#SBATCH --time=01:00:00 #offline -> 10 , subsample -> 20, fjlt -> 32, baseline -> 2
 
 #NOTE: ntasks-per-node should match num_gpus
 #NOTE: cpus-per-task per node should be num_workers per gpu
 
-TEST=channel_flow/tinr_offline_full
+TEST=channel_flow/hnet_online_manifold
 DATA_DIR=/gscratch/amath/cooper/data/channel_flow
-TIME=00:23:00:00
+TIME=00:01:00:00
 
 module purge
 source ~/.bashrc #For conda
