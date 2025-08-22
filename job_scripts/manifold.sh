@@ -1,11 +1,12 @@
 #!/bin/bash
 #SBATCH --job-name=dimension-analysis
 #SBATCH --account=amath
-#SBATCH --partition=cpu-g2
+#SBATCH --partition=gpu-l40s
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=128G
+#SBATCH --gpus=1
 #SBATCH --time=24:00:00
 
 #NOTE: Memory should be total memory for all cpus

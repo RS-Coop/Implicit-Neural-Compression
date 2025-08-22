@@ -5,6 +5,8 @@ import skdim
 import yaml
 import copy
 
+device = torch.device("gpu")
+
 def estimate_dim(path, coords, d, c, N=1000, scale=1e-5):
 
     log_dir = "lightning_logs/" + path
@@ -15,7 +17,7 @@ def estimate_dim(path, coords, d, c, N=1000, scale=1e-5):
         config = yaml.safe_load(file)
 
     #Load model
-    model = Model.load_from_checkpoint(ckpt_path, input_shape=((1,1),(1,1,1,d)), output_shape=(1,1,c), **config["model"])
+    model = Model.load_from_checkpoint(ckpt_path, input_shape=((1,1),(1,1,1,d)), output_shape=(1,1,c), **config["model"], map_location=device)
     state = copy.deepcopy(model.state_dict())
 
     N = 1000
@@ -28,14 +30,14 @@ def estimate_dim(path, coords, d, c, N=1000, scale=1e-5):
         for param in model.parameters():
             if param.requires_grad:
                 with torch.no_grad():
-                    param.data.add_(scale*torch.randn(param.shape))
+                    param.data.add_(scale*torch.randn(param.shape, device=device))
     
         #Evaluate
         with torch.no_grad():
             output = model(coords)
     
         #Append sample
-        samples[i,:] = output.detach().numpy().flatten()
+        samples[i,:] = output.detach().cpu().numpy().flatten()
     
         #Reset state
         model.load_state_dict(state)
