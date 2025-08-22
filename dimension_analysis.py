@@ -42,7 +42,7 @@ def estimate_dim(path, coords, d, c, N=1000, scale=1e-5):
 
     lpca = skdim.id.lPCA().fit_pw(samples[:,:], n_neighbors=100, n_jobs=16)
 
-    return lpca.dimension_
+    return np.mean(lpca.dimension_pw_)
 
 #NOTE: Setting the seed for reproducibility
 torch.manual_seed(7175775717)
