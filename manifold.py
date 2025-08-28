@@ -1,8 +1,6 @@
 import numpy as np
 import skdim
 
-device = torch.device("gpu")
-
 def estimate_dim(samples, scale=1e-5):
 
     lpca = skdim.id.lPCA().fit_pw(samples, n_neighbors=100, n_jobs=16)
