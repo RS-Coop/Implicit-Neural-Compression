@@ -1,14 +1,14 @@
-# Sketch-Based Online Training of Implicit Neural Compressors for Scientific Simulations
+# *In Situ* Training of Implicit Neural Compressors for Scientific Simulations via Sketch-Based Regularization
 
 ### [arXiv]()
 
-[Cooper Simpson](https://rs-coop.github.io/), [Stephen Becker](https://stephenbeckr.github.io/), [Alireza Doostan](https://www.colorado.edu/aerospace/alireza-doostan)
+[Cooper Simpson](https://rs-coop.github.io/), [Stephen Becker](https://stephenbeckr.github.io/), [Alireza Doostan](https://www.colorado.edu/lab/uq-data-driven-modeling/)
 
-Submitted to []()
+Submitted to [Journal of Computational Physics](https://www.sciencedirect.com/journal/journal-of-computational-physics)
 
 ## Abstract
 
-We present a novel online training protocol employing limited memory buffers of full and sketched data samples, where the sketched data is leveraged to prevent catastrophic forgetting. The theoretical motivation for our use of sketching as a regularizer is presented via a simple Johnson-Lindenstrauss-informed result. While our methods may be of wider interest in the field of continuous learning, we specifically target *in situ* neural compression using implicit neural representation-based hypernetworks. We evaluate our method on a variety of complex simulation data in two and three dimensions, over long time horizons, and across non-uniform and non-Cartesian meshes. On these tasks, we show strong reconstruction performance at high compression rates. Most importantly, on all of our tasks, we show that sketching enables our online method to approximately match the performance of the equivalent offline method.
+Focusing on implicit neural representations, we present a novel *in situ* training protocol that employs limited memory buffers of full and sketched data samples, where the sketched data are leveraged to prevent catastrophic forgetting. The theoretical motivation for our use of sketching as a regularizer is presented via a simple Johnson-Lindenstrauss-informed result. While our methods may be of wider interest in the field of *continual learning*, we specifically target *in situ* neural compression using implicit neural representation-based hypernetworks. We evaluate our method on a variety of complex simulation data in two and three dimensions, over long time horizons, and across unstructured grids and non-Cartesian geometries. On these tasks, we show strong reconstruction performance at high compression rates. Most importantly, we demonstrate that sketching enables the presented *in situ* scheme to approximately match the performance of the equivalent offline method.
 
 ## License \& Citation
 All source code is made available under an MIT license. You can freely use and modify the code, without warranty, so long as you provide attribution to the authors. See [`LICENSE`](./LICENSE) for the full text. 
@@ -65,4 +65,4 @@ tensorboard --logdir=lightning_logs/
 ```
 
 ### Generating Figures
-The Jupyter Notebook [`Paper Results`](./Paper%20Results.ipynb) can be used to generate all paper figures and tables details.
+The Jupyter Notebook [`Paper Results`](./Paper%20Results.ipynb) can be used to generate all paper figures and table details.
