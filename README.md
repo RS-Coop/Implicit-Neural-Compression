@@ -1,6 +1,6 @@
 # *In Situ* Training of Implicit Neural Compressors for Scientific Simulations via Sketch-Based Regularization
 
-### [arXiv]()
+### [arXiv](https://arxiv.org/abs/2511.02659)
 
 [Cooper Simpson](https://rs-coop.github.io/), [Stephen Becker](https://stephenbeckr.github.io/), [Alireza Doostan](https://www.colorado.edu/lab/uq-data-driven-modeling/)
 
@@ -15,11 +15,12 @@ All source code is made available under an MIT license. You can freely use and m
 
 Our work can be cited using the following bibtex entry:
 ```bibtex
-@article{simpson2025inc,
-  title = {{Sketch-Based Online Training of Implicit Neural Compressors for Scientific Simulations}},
-  authors = {Simpson, Cooper and Becker, Stephen and Doostan, Alireza},
+@article{simpson2025insitu,
+  title = {{In Situ Training of Implicit Neural Compressors for Scientific Simulations via Sketch-Based Regularization}},
+  author = {Simpson, Cooper and Becker, Stephen and Doostan, Alireza},
   year = {2025},
-  journal = {arXiv}
+  journal = {arXiv},
+  url = {https://arxiv.org/abs/2511.02659}
 }
 ```
 
