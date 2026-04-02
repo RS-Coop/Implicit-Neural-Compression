@@ -10,6 +10,7 @@ dependencies:
   - pip
   - numpy
   - matplotlib
+  - zfpy
   - pip:
     - tbparse
     - torch_tb_profiler
